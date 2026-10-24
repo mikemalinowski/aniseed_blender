@@ -1,0 +1,2581 @@
+{
+    "label": "BipedRig",
+    "tree": [
+        {
+            "component_type": "Rig Configuration : Experiment",
+            "version": 1,
+            "inputs": {},
+            "options": {},
+            "label": "Configuration",
+            "uuid": "0165f5d7-e3ee-4e2e-8936-012ca2376cdd",
+            "enabled": true,
+            "additional_data": {},
+            "children": []
+        },
+        {
+            "component_type": "Stack : Execution Block",
+            "version": 1,
+            "inputs": {},
+            "options": {},
+            "label": "Make Rig Editable",
+            "uuid": "2f93c888-b7c0-48b2-897d-f253e20dec06",
+            "enabled": true,
+            "additional_data": {},
+            "children": [
+                {
+                    "component_type": "Experiment : Set Mode",
+                    "version": 1,
+                    "inputs": {
+                        "Object": ""
+                    },
+                    "options": {
+                        "Mode": "Object",
+                        "Target": "Control Armature"
+                    },
+                    "label": "Enter Object Mode",
+                    "uuid": "e98deb90-3c29-49a7-888e-62189389a98d",
+                    "enabled": true,
+                    "additional_data": {},
+                    "children": []
+                },
+                {
+                    "component_type": "Experiment : Unlink Deformation Rig",
+                    "version": 1,
+                    "inputs": {},
+                    "options": {},
+                    "label": "Unlink Deformation Rig",
+                    "uuid": "e59843ed-0f75-4b59-b299-7df36f62cb8e",
+                    "enabled": true,
+                    "additional_data": {},
+                    "children": []
+                },
+                {
+                    "component_type": "Experiment : Delete Control Rig",
+                    "version": 1,
+                    "inputs": {},
+                    "options": {},
+                    "label": "Delete Control Rig",
+                    "uuid": "9c2ac900-21b5-4d77-a3c6-be82d406b937",
+                    "enabled": true,
+                    "additional_data": {},
+                    "children": []
+                }
+            ]
+        },
+        {
+            "component_type": "Stack : Execution Block",
+            "version": 1,
+            "inputs": {},
+            "options": {},
+            "label": "Build Rig",
+            "uuid": "337a93e3-82a3-446b-878d-c90724f1928d",
+            "enabled": true,
+            "additional_data": {},
+            "children": [
+                {
+                    "component_type": "Stack : Run Execution Block",
+                    "version": 1,
+                    "inputs": {
+                        "Execution Block Label": "Make Rig Editable"
+                    },
+                    "options": {},
+                    "label": "Ensure Rig Is Editable",
+                    "uuid": "5df591f7-02e8-41a6-adcd-c7f4c41d5730",
+                    "enabled": true,
+                    "additional_data": {},
+                    "children": []
+                },
+                {
+                    "component_type": "Experiment : Remove All Guides",
+                    "version": 1,
+                    "inputs": {},
+                    "options": {},
+                    "label": "Remove All Guides",
+                    "uuid": "c9601828-357b-4fbb-98a2-4846e804d73e",
+                    "enabled": true,
+                    "additional_data": {},
+                    "children": []
+                },
+                {
+                    "component_type": "Experiment : Create Control Armature",
+                    "version": 1,
+                    "inputs": {
+                        "Parent": "ORG_Controls_01_M",
+                        "Deform Armature": ""
+                    },
+                    "options": {},
+                    "label": "Create Control Armature",
+                    "uuid": "d6f60683-0665-4e04-9e92-8f4afa014ccd",
+                    "enabled": true,
+                    "additional_data": {},
+                    "children": []
+                },
+                {
+                    "component_type": "Stack : Organiser",
+                    "version": 1,
+                    "inputs": {},
+                    "options": {},
+                    "label": "Components",
+                    "uuid": "7590c702-95b5-43ed-856c-ddf0a97c660f",
+                    "enabled": true,
+                    "additional_data": {},
+                    "children": [
+                        {
+                            "component_type": "Experiment : Root",
+                            "version": 1,
+                            "inputs": {
+                                "Parent": "",
+                                "Deform Armature": "DEF_Armature_01_M",
+                                "Root": "DEF_Root_01_M"
+                            },
+                            "options": {
+                                "Description": "Root",
+                                "Location": "M",
+                                "Size": 1.0,
+                                "Control Size": 1.0,
+                                "Deform Root": true
+                            },
+                            "label": "Root",
+                            "uuid": "3e9b8e8d-217a-4703-9160-15efabd8c42f",
+                            "enabled": true,
+                            "additional_data": {},
+                            "children": [
+                                {
+                                    "component_type": "Experiment : IKFK Spine",
+                                    "version": 1,
+                                    "inputs": {
+                                        "Parent": "[Root].[output].[Offset Control]",
+                                        "Deform Armature": "DEF_Armature_01_M",
+                                        "Pelvis": "DEF_Pelvis_01_M",
+                                        "Spine": [
+                                            "DEF_Spine_01_M",
+                                            "DEF_Spine_02_M",
+                                            "DEF_Chest_01_M"
+                                        ]
+                                    },
+                                    "options": {
+                                        "Description": "Spine",
+                                        "Location": "M",
+                                        "Size": 1.0,
+                                        "Control Size": 1.0,
+                                        "Spine Bones": 3,
+                                        "Stretch": false,
+                                        "Default IK FK": 1.0,
+                                        "_Guide Curve": {}
+                                    },
+                                    "label": "Spine",
+                                    "uuid": "06f1fc6b-4573-4497-be0f-90c5b907259b",
+                                    "enabled": true,
+                                    "additional_data": {},
+                                    "children": [
+                                        {
+                                            "component_type": "Experiment : Neck And Head",
+                                            "version": 1,
+                                            "inputs": {
+                                                "Parent": "[Spine].[output].[Blended Chest]",
+                                                "Deform Armature": "DEF_Armature_01_M",
+                                                "Neck": [
+                                                    "DEF_Neck_01_M"
+                                                ],
+                                                "Head": "DEF_Head_01_M"
+                                            },
+                                            "options": {
+                                                "Description": "Neck",
+                                                "Location": "M",
+                                                "Size": 1.0,
+                                                "Control Size": 1.0,
+                                                "Neck Bones": 1
+                                            },
+                                            "label": "Neck And Head",
+                                            "uuid": "86a862c2-dca2-4b28-acda-50c3c1521db4",
+                                            "enabled": true,
+                                            "additional_data": {},
+                                            "children": [
+                                                {
+                                                    "component_type": "Experiment : Space Switch",
+                                                    "version": 1,
+                                                    "inputs": {
+                                                        "To Be Driven": "[Neck And Head].[output].[Head]",
+                                                        "Attribute Host": ""
+                                                    },
+                                                    "options": {
+                                                        "Property Name": "space",
+                                                        "_Data": {
+                                                            "default_space": "Neck",
+                                                            "spaces": [
+                                                                {
+                                                                    "target": "[Neck And Head].[output].[Neck 01]",
+                                                                    "label": "Neck",
+                                                                    "position_only": false,
+                                                                    "orientation_only": true,
+                                                                    "uuid_": "2ac99ab1-e5a8-4ea9-af32-9e78e1ca3a9e"
+                                                                },
+                                                                {
+                                                                    "target": "[Spine].[output].[Blended Chest]",
+                                                                    "label": "Chest",
+                                                                    "position_only": false,
+                                                                    "orientation_only": true,
+                                                                    "uuid_": "589dd473-cd73-40eb-a8a8-f4dae2620cdc"
+                                                                },
+                                                                {
+                                                                    "target": "[Root].[output].[Offset Control]",
+                                                                    "label": "World",
+                                                                    "position_only": false,
+                                                                    "orientation_only": true,
+                                                                    "uuid_": "60ac431e-3852-40e5-ae37-107a172deed2"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "label": "Head Space",
+                                                    "uuid": "9d7a60eb-0f78-46c7-af23-f2e49010637e",
+                                                    "enabled": true,
+                                                    "additional_data": {},
+                                                    "children": []
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "component_type": "Experiment : Arm",
+                                            "version": 1,
+                                            "inputs": {
+                                                "Parent": "[Spine].[output].[Blended Chest]",
+                                                "Deform Armature": "DEF_Armature_01_M",
+                                                "Clavicle": "DEF_Clavicle_01_L",
+                                                "Upper Arm": "DEF_UpperArm_01_L",
+                                                "Forearm": "DEF_Forearm_01_L",
+                                                "Hand": "DEF_Hand_01_L",
+                                                "Fingers": [
+                                                    [
+                                                        "DEF_Thumb_01_L",
+                                                        "DEF_Thumb_02_L",
+                                                        "DEF_Thumb_03_L"
+                                                    ],
+                                                    [
+                                                        "DEF_Index_01_L",
+                                                        "DEF_Index_02_L",
+                                                        "DEF_Index_03_L"
+                                                    ],
+                                                    [
+                                                        "DEF_Middle_01_L",
+                                                        "DEF_Middle_02_L",
+                                                        "DEF_Middle_03_L"
+                                                    ],
+                                                    [
+                                                        "DEF_Ring_01_L",
+                                                        "DEF_Ring_02_L",
+                                                        "DEF_Ring_03_L"
+                                                    ],
+                                                    [
+                                                        "DEF_Pinky_01_L",
+                                                        "DEF_Pinky_02_L",
+                                                        "DEF_Pinky_03_L"
+                                                    ]
+                                                ]
+                                            },
+                                            "options": {
+                                                "Description": "Arm",
+                                                "Location": "L",
+                                                "Size": 1.0,
+                                                "Control Size": 1.0,
+                                                "Fingers To Create": [
+                                                    "Thumb",
+                                                    "Index",
+                                                    "Middle",
+                                                    "Ring",
+                                                    "Pinky"
+                                                ],
+                                                "Default IK FK": 0.0
+                                            },
+                                            "label": "Arm L",
+                                            "uuid": "6579de8e-9c69-43d5-88c3-e863a2294700",
+                                            "enabled": true,
+                                            "additional_data": {},
+                                            "children": [
+                                                {
+                                                    "component_type": "Experiment : Space Switch",
+                                                    "version": 1,
+                                                    "inputs": {
+                                                        "To Be Driven": "[Arm L].[output].[IK Hand]",
+                                                        "Attribute Host": ""
+                                                    },
+                                                    "options": {
+                                                        "Property Name": "space",
+                                                        "_Data": {
+                                                            "default_space": "World",
+                                                            "spaces": [
+                                                                {
+                                                                    "target": "[Root].[output].[Offset Control]",
+                                                                    "label": "World",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "d38c8e78-d5c7-44a6-af22-4e399f4ea261"
+                                                                },
+                                                                {
+                                                                    "target": "[Arm L].[input].[Parent]",
+                                                                    "label": "Parent",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "d3c0186b-c7f9-429b-b2ec-7b6684bf797f"
+                                                                },
+                                                                {
+                                                                    "target": "[Arm L].[output].[Clavicle]",
+                                                                    "label": "Shoulder",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "ea128138-d3df-41e4-80dd-b6c2b7d1e987"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "label": "Hand Space L",
+                                                    "uuid": "0d20a60c-1c6f-4235-9623-8b591fd5d8bb",
+                                                    "enabled": true,
+                                                    "additional_data": {},
+                                                    "children": []
+                                                },
+                                                {
+                                                    "component_type": "Experiment : Space Switch",
+                                                    "version": 1,
+                                                    "inputs": {
+                                                        "To Be Driven": "[Arm L].[output].[Pole]",
+                                                        "Attribute Host": ""
+                                                    },
+                                                    "options": {
+                                                        "Property Name": "space",
+                                                        "_Data": {
+                                                            "default_space": "Hand",
+                                                            "spaces": [
+                                                                {
+                                                                    "target": "[Root].[output].[Offset Control]",
+                                                                    "label": "World",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "1c6c350c-abd8-4cc7-97cd-94c5edacd334"
+                                                                },
+                                                                {
+                                                                    "target": "[Arm L].[input].[Parent]",
+                                                                    "label": "Parent",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "a8466faf-1518-4304-a002-0ccb4fbe5830"
+                                                                },
+                                                                {
+                                                                    "target": "[Arm L].[output].[Clavicle]",
+                                                                    "label": "Shoulder",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "6303a77a-80f4-452b-934a-e033c13a9428"
+                                                                },
+                                                                {
+                                                                    "target": "[Arm L].[output].[IK Hand]",
+                                                                    "label": "Hand",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "58cb8136-6649-4902-8449-c75ce474a019"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "label": "Arm Pole Space L",
+                                                    "uuid": "1adb586a-c805-472a-84b4-065c933f511b",
+                                                    "enabled": true,
+                                                    "additional_data": {},
+                                                    "children": []
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "component_type": "Experiment : Leg",
+                                            "version": 1,
+                                            "inputs": {
+                                                "Parent": "[Spine].[output].[Blended Pelvis]",
+                                                "Deform Armature": "DEF_Armature_01_M",
+                                                "Thigh": "DEF_Thigh_01_L",
+                                                "Shin": "DEF_Shin_01_L",
+                                                "Foot": "DEF_Foot_01_L",
+                                                "Toe": "DEF_Toe_01_L",
+                                                "Heel Pivot": "GDE_HeelPivot_01_L",
+                                                "Toe Pivot": "GDE_ToePivot_01_L",
+                                                "Inner Pivot": "GDE_InnerPivot_01_L",
+                                                "Outer Pivot": "GDE_OuterPivot_01_L"
+                                            },
+                                            "options": {
+                                                "Description": "Leg",
+                                                "Location": "L",
+                                                "Size": 1.0,
+                                                "Control Size": 1.0,
+                                                "Default IK FK": 1.0
+                                            },
+                                            "label": "Leg L",
+                                            "uuid": "cc70af30-8dbd-4c19-b2c9-3bc9027d18fc",
+                                            "enabled": true,
+                                            "additional_data": {},
+                                            "children": [
+                                                {
+                                                    "component_type": "Experiment : Space Switch",
+                                                    "version": 1,
+                                                    "inputs": {
+                                                        "To Be Driven": "[Leg L].[output].[IK Foot]",
+                                                        "Attribute Host": ""
+                                                    },
+                                                    "options": {
+                                                        "Property Name": "space",
+                                                        "_Data": {
+                                                            "default_space": "World",
+                                                            "spaces": [
+                                                                {
+                                                                    "target": "[Root].[output].[Offset Control]",
+                                                                    "label": "World",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "5d2104e2-b3b8-44ba-b5f4-df16f30b1f8e"
+                                                                },
+                                                                {
+                                                                    "target": "[Leg L].[input].[Parent]",
+                                                                    "label": "Parent",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "71a044dc-4142-4a7c-9a86-531c68116528"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "label": "Foot Space L",
+                                                    "uuid": "cf4555cd-f796-4424-a4ba-b80871837ed3",
+                                                    "enabled": true,
+                                                    "additional_data": {},
+                                                    "children": []
+                                                },
+                                                {
+                                                    "component_type": "Experiment : Space Switch",
+                                                    "version": 1,
+                                                    "inputs": {
+                                                        "To Be Driven": "[Leg L].[output].[Pole]",
+                                                        "Attribute Host": ""
+                                                    },
+                                                    "options": {
+                                                        "Property Name": "space",
+                                                        "_Data": {
+                                                            "default_space": "Foot",
+                                                            "spaces": [
+                                                                {
+                                                                    "target": "[Root].[output].[Offset Control]",
+                                                                    "label": "World",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "bf4a00e8-c35b-416b-8e7d-7b3a62963da6"
+                                                                },
+                                                                {
+                                                                    "target": "[Leg L].[input].[Parent]",
+                                                                    "label": "Parent",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "09970d0a-d55b-489b-9276-21c5b1f292fd"
+                                                                },
+                                                                {
+                                                                    "target": "[Leg L].[output].[IK Foot]",
+                                                                    "label": "Foot",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "8723fbd2-09a8-446f-880d-1db70a03bb58"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "label": "Leg Pole Space L",
+                                                    "uuid": "a0adea22-7a41-48a7-a060-c8b8561723bd",
+                                                    "enabled": true,
+                                                    "additional_data": {},
+                                                    "children": []
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "component_type": "Experiment : Arm",
+                                            "version": 1,
+                                            "inputs": {
+                                                "Parent": "[Spine].[output].[Blended Chest]",
+                                                "Deform Armature": "DEF_Armature_01_M",
+                                                "Clavicle": "DEF_Clavicle_01_R",
+                                                "Upper Arm": "DEF_UpperArm_01_R",
+                                                "Forearm": "DEF_Forearm_01_R",
+                                                "Hand": "DEF_Hand_01_R",
+                                                "Fingers": [
+                                                    [
+                                                        "DEF_Thumb_01_R",
+                                                        "DEF_Thumb_02_R",
+                                                        "DEF_Thumb_03_R"
+                                                    ],
+                                                    [
+                                                        "DEF_Index_01_R",
+                                                        "DEF_Index_02_R",
+                                                        "DEF_Index_03_R"
+                                                    ],
+                                                    [
+                                                        "DEF_Middle_01_R",
+                                                        "DEF_Middle_02_R",
+                                                        "DEF_Middle_03_R"
+                                                    ],
+                                                    [
+                                                        "DEF_Ring_01_R",
+                                                        "DEF_Ring_02_R",
+                                                        "DEF_Ring_03_R"
+                                                    ],
+                                                    [
+                                                        "DEF_Pinky_01_R",
+                                                        "DEF_Pinky_02_R",
+                                                        "DEF_Pinky_03_R"
+                                                    ]
+                                                ]
+                                            },
+                                            "options": {
+                                                "Description": "Arm",
+                                                "Location": "R",
+                                                "Size": 1.0,
+                                                "Control Size": 1.0,
+                                                "Fingers To Create": [
+                                                    "Thumb",
+                                                    "Index",
+                                                    "Middle",
+                                                    "Ring",
+                                                    "Pinky"
+                                                ],
+                                                "Default IK FK": 0.0
+                                            },
+                                            "label": "Arm R",
+                                            "uuid": "7bf83fea-d52f-4bb8-acb4-a3b009e743d9",
+                                            "enabled": true,
+                                            "additional_data": {},
+                                            "children": [
+                                                {
+                                                    "component_type": "Experiment : Space Switch",
+                                                    "version": 1,
+                                                    "inputs": {
+                                                        "To Be Driven": "[Arm R].[output].[IK Hand]",
+                                                        "Attribute Host": ""
+                                                    },
+                                                    "options": {
+                                                        "Property Name": "space",
+                                                        "_Data": {
+                                                            "default_space": "World",
+                                                            "spaces": [
+                                                                {
+                                                                    "target": "[Root].[output].[Offset Control]",
+                                                                    "label": "World",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "d38c8e78-d5c7-44a6-af22-4e399f4ea261"
+                                                                },
+                                                                {
+                                                                    "target": "[Arm R].[input].[Parent]",
+                                                                    "label": "Parent",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "d3c0186b-c7f9-429b-b2ec-7b6684bf797f"
+                                                                },
+                                                                {
+                                                                    "target": "[Arm R].[output].[Clavicle]",
+                                                                    "label": "Shoulder",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "ea128138-d3df-41e4-80dd-b6c2b7d1e987"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "label": "Hand Space R",
+                                                    "uuid": "f44deda0-24e2-4a81-8064-9a9a77348a0f",
+                                                    "enabled": true,
+                                                    "additional_data": {},
+                                                    "children": []
+                                                },
+                                                {
+                                                    "component_type": "Experiment : Space Switch",
+                                                    "version": 1,
+                                                    "inputs": {
+                                                        "To Be Driven": "[Arm R].[output].[Pole]",
+                                                        "Attribute Host": ""
+                                                    },
+                                                    "options": {
+                                                        "Property Name": "space",
+                                                        "_Data": {
+                                                            "default_space": "Hand",
+                                                            "spaces": [
+                                                                {
+                                                                    "target": "[Root].[output].[Offset Control]",
+                                                                    "label": "World",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "1c6c350c-abd8-4cc7-97cd-94c5edacd334"
+                                                                },
+                                                                {
+                                                                    "target": "[Arm R].[input].[Parent]",
+                                                                    "label": "Parent",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "a8466faf-1518-4304-a002-0ccb4fbe5830"
+                                                                },
+                                                                {
+                                                                    "target": "[Arm R].[output].[Clavicle]",
+                                                                    "label": "Shoulder",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "6303a77a-80f4-452b-934a-e033c13a9428"
+                                                                },
+                                                                {
+                                                                    "target": "[Arm R].[output].[IK Hand]",
+                                                                    "label": "Hand",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "58cb8136-6649-4902-8449-c75ce474a019"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "label": "Arm Pole Space R",
+                                                    "uuid": "dde6e8f5-e3d0-4c79-a49f-347b5cd6ce60",
+                                                    "enabled": true,
+                                                    "additional_data": {},
+                                                    "children": []
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "component_type": "Experiment : Leg",
+                                            "version": 1,
+                                            "inputs": {
+                                                "Parent": "[Spine].[output].[Blended Pelvis]",
+                                                "Deform Armature": "DEF_Armature_01_M",
+                                                "Thigh": "DEF_Thigh_01_R",
+                                                "Shin": "DEF_Shin_01_R",
+                                                "Foot": "DEF_Foot_01_R",
+                                                "Toe": "DEF_Toe_01_R",
+                                                "Heel Pivot": "GDE_HeelPivot_01_R",
+                                                "Toe Pivot": "GDE_ToePivot_01_R",
+                                                "Inner Pivot": "GDE_InnerPivot_01_R",
+                                                "Outer Pivot": "GDE_OuterPivot_01_R"
+                                            },
+                                            "options": {
+                                                "Description": "Leg",
+                                                "Location": "R",
+                                                "Size": 1.0,
+                                                "Control Size": 1.0,
+                                                "Default IK FK": 1.0
+                                            },
+                                            "label": "Leg R",
+                                            "uuid": "5b3290f6-62a0-4743-b185-1e2c6301faf5",
+                                            "enabled": true,
+                                            "additional_data": {},
+                                            "children": [
+                                                {
+                                                    "component_type": "Experiment : Space Switch",
+                                                    "version": 1,
+                                                    "inputs": {
+                                                        "To Be Driven": "[Leg R].[output].[IK Foot]",
+                                                        "Attribute Host": ""
+                                                    },
+                                                    "options": {
+                                                        "Property Name": "space",
+                                                        "_Data": {
+                                                            "default_space": "World",
+                                                            "spaces": [
+                                                                {
+                                                                    "target": "[Root].[output].[Offset Control]",
+                                                                    "label": "World",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "5d2104e2-b3b8-44ba-b5f4-df16f30b1f8e"
+                                                                },
+                                                                {
+                                                                    "target": "[Leg R].[input].[Parent]",
+                                                                    "label": "Parent",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "71a044dc-4142-4a7c-9a86-531c68116528"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "label": "Foot Space R",
+                                                    "uuid": "d4fcb67b-217b-4da1-b9de-a2ff8f9caf39",
+                                                    "enabled": true,
+                                                    "additional_data": {},
+                                                    "children": []
+                                                },
+                                                {
+                                                    "component_type": "Experiment : Space Switch",
+                                                    "version": 1,
+                                                    "inputs": {
+                                                        "To Be Driven": "[Leg R].[output].[Pole]",
+                                                        "Attribute Host": ""
+                                                    },
+                                                    "options": {
+                                                        "Property Name": "space",
+                                                        "_Data": {
+                                                            "default_space": "Foot",
+                                                            "spaces": [
+                                                                {
+                                                                    "target": "[Root].[output].[Offset Control]",
+                                                                    "label": "World",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "bf4a00e8-c35b-416b-8e7d-7b3a62963da6"
+                                                                },
+                                                                {
+                                                                    "target": "[Leg R].[input].[Parent]",
+                                                                    "label": "Parent",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "09970d0a-d55b-489b-9276-21c5b1f292fd"
+                                                                },
+                                                                {
+                                                                    "target": "[Leg R].[output].[IK Foot]",
+                                                                    "label": "Foot",
+                                                                    "position_only": false,
+                                                                    "orientation_only": false,
+                                                                    "uuid_": "8723fbd2-09a8-446f-880d-1db70a03bb58"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "label": "Leg Pole Space R",
+                                                    "uuid": "eeedd712-6bd8-44cc-9b3a-0f30d5997590",
+                                                    "enabled": true,
+                                                    "additional_data": {},
+                                                    "children": []
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "component_type": "Stack : Organiser",
+                    "version": 1,
+                    "inputs": {},
+                    "options": {},
+                    "label": "Post Build",
+                    "uuid": "0049b5f3-6951-4df6-8ee4-e3aeb24b8323",
+                    "enabled": true,
+                    "additional_data": {},
+                    "children": [
+                        {
+                            "component_type": "Experiment : Link Deformation Rig",
+                            "version": 1,
+                            "inputs": {},
+                            "options": {},
+                            "label": "Link Deformation Rig",
+                            "uuid": "d6394836-3fdc-4321-9f59-b178f4e36b47",
+                            "enabled": true,
+                            "additional_data": {},
+                            "children": []
+                        },
+                        {
+                            "component_type": "Experiment : Control Visuals",
+                            "version": 1,
+                            "inputs": {},
+                            "options": {
+                                "Apply": true,
+                                "Snapshot": null,
+                                "Snapshot Selected": null,
+                                "Clear": null,
+                                "Save File": null,
+                                "Load File": null,
+                                "_Visuals": {}
+                            },
+                            "label": "Control Visuals",
+                            "uuid": "0d0366c3-ce36-47db-af0c-fb3c034e88dd",
+                            "enabled": true,
+                            "additional_data": {},
+                            "children": []
+                        },
+                        {
+                            "component_type": "Experiment : Finalise",
+                            "version": 1,
+                            "inputs": {},
+                            "options": {
+                                "Hidden Collections": [
+                                    "Mechanics"
+                                ],
+                                "Hide Deform Armature": true
+                            },
+                            "label": "Finalise",
+                            "uuid": "69371891-d5e8-4018-814c-e2094351572a",
+                            "enabled": true,
+                            "additional_data": {},
+                            "children": []
+                        },
+                        {
+                            "component_type": "Experiment : Set Mode",
+                            "version": 1,
+                            "inputs": {
+                                "Object": ""
+                            },
+                            "options": {
+                                "Mode": "Pose",
+                                "Target": "Control Armature"
+                            },
+                            "label": "Enter Pose Mode",
+                            "uuid": "d12f8df8-a0aa-4aee-9872-ab16c6341497",
+                            "enabled": true,
+                            "additional_data": {},
+                            "children": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "format": "galaxy",
+    "versions": {
+        "aniseed": "4.0.0",
+        "packages": {
+            "aniseed_blender_experimental": "0.1.0",
+            "aniseed_blender_standard": "0.1.0"
+        }
+    },
+    "additional_data": {
+        "hierarchy": [
+            {
+                "name": "ORG_Controls_01_M",
+                "type": "EMPTY",
+                "parent": null,
+                "parent_type": "OBJECT",
+                "parent_bone": "",
+                "matrix_basis": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": false,
+                "custom_properties": {},
+                "display_type": "PLAIN_AXES",
+                "display_size": 1.0
+            },
+            {
+                "name": "ORG_Guides_01_M",
+                "type": "EMPTY",
+                "parent": null,
+                "parent_type": "OBJECT",
+                "parent_bone": "",
+                "matrix_basis": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": false,
+                "custom_properties": {},
+                "display_type": "PLAIN_AXES",
+                "display_size": 1.0
+            },
+            {
+                "name": "ORG_Skeleton_01_M",
+                "type": "EMPTY",
+                "parent": null,
+                "parent_type": "OBJECT",
+                "parent_bone": "",
+                "matrix_basis": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": false,
+                "custom_properties": {},
+                "display_type": "PLAIN_AXES",
+                "display_size": 1.0
+            },
+            {
+                "name": "DEF_Armature_01_M",
+                "type": "ARMATURE",
+                "parent": "ORG_Skeleton_01_M",
+                "parent_type": "OBJECT",
+                "parent_bone": "",
+                "matrix_basis": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": true,
+                "custom_properties": {
+                    "aniseed_role": "deform"
+                },
+                "armature": {
+                    "display_type": "OCTAHEDRAL",
+                    "collections": [],
+                    "bones": [
+                        {
+                            "name": "DEF_Root_01_M",
+                            "head": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ],
+                            "tail": [
+                                0.0,
+                                0.5,
+                                0.0
+                            ],
+                            "z_axis": [
+                                0.0,
+                                0.0,
+                                1.0
+                            ],
+                            "parent": "",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Pelvis_01_M",
+                            "head": [
+                                0.0,
+                                0.0,
+                                1.0
+                            ],
+                            "tail": [
+                                0.0,
+                                0.0,
+                                1.100000023841858
+                            ],
+                            "z_axis": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "parent": "DEF_Root_01_M",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Spine_01_M",
+                            "head": [
+                                0.0,
+                                0.0,
+                                1.100000023841858
+                            ],
+                            "tail": [
+                                0.0,
+                                0.0,
+                                1.2333333492279053
+                            ],
+                            "z_axis": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "parent": "DEF_Pelvis_01_M",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Thigh_01_L",
+                            "head": [
+                                0.10000000149011612,
+                                0.0,
+                                0.949999988079071
+                            ],
+                            "tail": [
+                                0.10000000149011612,
+                                -0.029999999329447746,
+                                0.5199999809265137
+                            ],
+                            "z_axis": [
+                                1.509966978119337e-07,
+                                -0.9975809454917908,
+                                0.06959906965494156
+                            ],
+                            "parent": "DEF_Pelvis_01_M",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Thigh_01_R",
+                            "head": [
+                                -0.10000000149011612,
+                                0.0,
+                                0.949999988079071
+                            ],
+                            "tail": [
+                                -0.10000000149011612,
+                                -0.029999999329447746,
+                                0.5199999809265137
+                            ],
+                            "z_axis": [
+                                -1.509966978119337e-07,
+                                -0.9975809454917908,
+                                0.06959906965494156
+                            ],
+                            "parent": "DEF_Pelvis_01_M",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Spine_02_M",
+                            "head": [
+                                0.0,
+                                0.0,
+                                1.2333333492279053
+                            ],
+                            "tail": [
+                                0.0,
+                                0.0,
+                                1.3666666746139526
+                            ],
+                            "z_axis": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "parent": "DEF_Spine_01_M",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Shin_01_L",
+                            "head": [
+                                0.10000000149011612,
+                                -0.029999999329447746,
+                                0.5199999809265137
+                            ],
+                            "tail": [
+                                0.10000000149011612,
+                                0.019999999552965164,
+                                0.07999999821186066
+                            ],
+                            "z_axis": [
+                                -8.742192392219295e-08,
+                                -0.9936110973358154,
+                                -0.11290796846151352
+                            ],
+                            "parent": "DEF_Thigh_01_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Shin_01_R",
+                            "head": [
+                                -0.10000000149011612,
+                                -0.029999999329447746,
+                                0.5199999809265137
+                            ],
+                            "tail": [
+                                -0.10000000149011612,
+                                0.019999999552965164,
+                                0.07999999821186066
+                            ],
+                            "z_axis": [
+                                -8.742362922475877e-08,
+                                -0.9936110973358154,
+                                -0.11290796846151352
+                            ],
+                            "parent": "DEF_Thigh_01_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Chest_01_M",
+                            "head": [
+                                0.0,
+                                0.0,
+                                1.3666666746139526
+                            ],
+                            "tail": [
+                                0.0,
+                                0.0,
+                                1.5
+                            ],
+                            "z_axis": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "parent": "DEF_Spine_02_M",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Foot_01_L",
+                            "head": [
+                                0.10000000149011612,
+                                0.019999999552965164,
+                                0.07999999821186066
+                            ],
+                            "tail": [
+                                0.10000000149011612,
+                                -0.10000000149011612,
+                                0.019999999552965164
+                            ],
+                            "z_axis": [
+                                3.894146232141793e-07,
+                                -0.44721895456314087,
+                                0.894426703453064
+                            ],
+                            "parent": "DEF_Shin_01_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Foot_01_R",
+                            "head": [
+                                -0.10000000149011612,
+                                0.019999999552965164,
+                                0.07999999821186066
+                            ],
+                            "tail": [
+                                -0.10000000149011612,
+                                -0.10000000149011612,
+                                0.019999999552965164
+                            ],
+                            "z_axis": [
+                                -3.894148221661453e-07,
+                                -0.44721895456314087,
+                                0.894426703453064
+                            ],
+                            "parent": "DEF_Shin_01_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Neck_01_M",
+                            "head": [
+                                0.0,
+                                0.0,
+                                1.5
+                            ],
+                            "tail": [
+                                0.0,
+                                0.0,
+                                1.6200000047683716
+                            ],
+                            "z_axis": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "parent": "DEF_Chest_01_M",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Clavicle_01_L",
+                            "head": [
+                                0.019999999552965164,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.17000000178813934,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                0.0,
+                                4.371138828673793e-08,
+                                1.0
+                            ],
+                            "parent": "DEF_Chest_01_M",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Clavicle_01_R",
+                            "head": [
+                                -0.019999999552965164,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.17000000178813934,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                0.0,
+                                4.371138828673793e-08,
+                                1.0
+                            ],
+                            "parent": "DEF_Chest_01_M",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Toe_01_L",
+                            "head": [
+                                0.10000000149011612,
+                                -0.10000000149011612,
+                                0.019999999552965164
+                            ],
+                            "tail": [
+                                0.10000000149011612,
+                                -0.18000000715255737,
+                                0.019999999552965164
+                            ],
+                            "z_axis": [
+                                1.9895196601282805e-13,
+                                -1.1622905731201172e-06,
+                                1.0000004768371582
+                            ],
+                            "parent": "DEF_Foot_01_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Toe_01_R",
+                            "head": [
+                                -0.10000000149011612,
+                                -0.10000000149011612,
+                                0.019999999552965164
+                            ],
+                            "tail": [
+                                -0.10000000149011612,
+                                -0.18000000715255737,
+                                0.019999999552965164
+                            ],
+                            "z_axis": [
+                                -4.263256414560601e-13,
+                                -1.1622905731201172e-06,
+                                1.0000004768371582
+                            ],
+                            "parent": "DEF_Foot_01_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Head_01_M",
+                            "head": [
+                                0.0,
+                                0.0,
+                                1.6200000047683716
+                            ],
+                            "tail": [
+                                0.0,
+                                0.0,
+                                1.8200000524520874
+                            ],
+                            "z_axis": [
+                                0.0,
+                                -1.0,
+                                0.0
+                            ],
+                            "parent": "DEF_Neck_01_M",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_UpperArm_01_L",
+                            "head": [
+                                0.17000000178813934,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.44999998807907104,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                4.44089183380283e-16,
+                                0.0,
+                                1.0
+                            ],
+                            "parent": "DEF_Clavicle_01_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_UpperArm_01_R",
+                            "head": [
+                                -0.17000000178813934,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.44999998807907104,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -4.44089183380283e-16,
+                                0.0,
+                                1.0
+                            ],
+                            "parent": "DEF_Clavicle_01_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Forearm_01_L",
+                            "head": [
+                                0.44999998807907104,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.699999988079071,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -7.829026005100196e-16,
+                                9.39483152375759e-17,
+                                1.0
+                            ],
+                            "parent": "DEF_UpperArm_01_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Forearm_01_R",
+                            "head": [
+                                -0.44999998807907104,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.699999988079071,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                7.829026005100196e-16,
+                                9.39483681771351e-17,
+                                1.0
+                            ],
+                            "parent": "DEF_UpperArm_01_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Hand_01_L",
+                            "head": [
+                                0.699999988079071,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.7799999713897705,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.759542501498411e-16,
+                                6.617444900424222e-24,
+                                1.0
+                            ],
+                            "parent": "DEF_Forearm_01_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Hand_01_R",
+                            "head": [
+                                -0.699999988079071,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.7799999713897705,
+                                0.0,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.759542501498411e-16,
+                                6.617444900424222e-24,
+                                1.0
+                            ],
+                            "parent": "DEF_Forearm_01_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Thumb_01_L",
+                            "head": [
+                                0.7200000286102295,
+                                -0.029999999329447746,
+                                1.440000057220459
+                            ],
+                            "tail": [
+                                0.7447487711906433,
+                                -0.05474873632192612,
+                                1.440000057220459
+                            ],
+                            "z_axis": [
+                                -1.8797711184003076e-16,
+                                1.8797720448425937e-16,
+                                1.0
+                            ],
+                            "parent": "DEF_Hand_01_L",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Index_01_L",
+                            "head": [
+                                0.7900000214576721,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.8300000429153442,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.759542501498411e-16,
+                                7.888609052210118e-31,
+                                1.0
+                            ],
+                            "parent": "DEF_Hand_01_L",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Middle_01_L",
+                            "head": [
+                                0.7900000214576721,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.8350000381469727,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.7595432955917993e-16,
+                                7.888609052210118e-31,
+                                1.0
+                            ],
+                            "parent": "DEF_Hand_01_L",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Ring_01_L",
+                            "head": [
+                                0.7900000214576721,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.8300000429153442,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.7595432955917993e-16,
+                                7.888609052210118e-31,
+                                1.0
+                            ],
+                            "parent": "DEF_Hand_01_L",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Pinky_01_L",
+                            "head": [
+                                0.7900000214576721,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.8220000267028809,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.759542501498411e-16,
+                                7.888609052210118e-31,
+                                1.0
+                            ],
+                            "parent": "DEF_Hand_01_L",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Thumb_01_R",
+                            "head": [
+                                -0.7200000286102295,
+                                -0.029999999329447746,
+                                1.440000057220459
+                            ],
+                            "tail": [
+                                -0.7447487711906433,
+                                -0.05474873632192612,
+                                1.440000057220459
+                            ],
+                            "z_axis": [
+                                1.8797703243069195e-16,
+                                1.8797728389359817e-16,
+                                1.0
+                            ],
+                            "parent": "DEF_Hand_01_R",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Index_01_R",
+                            "head": [
+                                -0.7900000214576721,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.8300000429153442,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.7595440896851873e-16,
+                                7.888609052210118e-31,
+                                1.0
+                            ],
+                            "parent": "DEF_Hand_01_R",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Middle_01_R",
+                            "head": [
+                                -0.7900000214576721,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.8350000381469727,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.7595432955917993e-16,
+                                7.888609052210118e-31,
+                                1.0
+                            ],
+                            "parent": "DEF_Hand_01_R",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Ring_01_R",
+                            "head": [
+                                -0.7900000214576721,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.8300000429153442,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.7595432955917993e-16,
+                                7.888609052210118e-31,
+                                1.0
+                            ],
+                            "parent": "DEF_Hand_01_R",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Pinky_01_R",
+                            "head": [
+                                -0.7900000214576721,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.8220000267028809,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.759542501498411e-16,
+                                7.888609052210118e-31,
+                                1.0
+                            ],
+                            "parent": "DEF_Hand_01_R",
+                            "use_connect": false,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Thumb_02_L",
+                            "head": [
+                                0.7447487711906433,
+                                -0.05474873632192612,
+                                1.440000057220459
+                            ],
+                            "tail": [
+                                0.7659619450569153,
+                                -0.07596193999052048,
+                                1.440000057220459
+                            ],
+                            "z_axis": [
+                                -1.9305697753597365e-15,
+                                1.9305723164585783e-15,
+                                1.0
+                            ],
+                            "parent": "DEF_Thumb_01_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Index_02_L",
+                            "head": [
+                                0.8300000429153442,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.8600000143051147,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.759543030894003e-16,
+                                4.70197740328915e-38,
+                                1.0
+                            ],
+                            "parent": "DEF_Index_01_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Middle_02_L",
+                            "head": [
+                                0.8350000381469727,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.8670000433921814,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.759543030894003e-16,
+                                9.4039548065783e-38,
+                                1.0
+                            ],
+                            "parent": "DEF_Middle_01_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Ring_02_L",
+                            "head": [
+                                0.8300000429153442,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.8600000143051147,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.759543030894003e-16,
+                                9.4039548065783e-38,
+                                1.0
+                            ],
+                            "parent": "DEF_Ring_01_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Pinky_02_L",
+                            "head": [
+                                0.8220000267028809,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.847000002861023,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.759543030894003e-16,
+                                9.4039548065783e-38,
+                                1.0
+                            ],
+                            "parent": "DEF_Pinky_01_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Thumb_02_R",
+                            "head": [
+                                -0.7447487711906433,
+                                -0.05474873632192612,
+                                1.440000057220459
+                            ],
+                            "tail": [
+                                -0.7659619450569153,
+                                -0.07596193999052048,
+                                1.440000057220459
+                            ],
+                            "z_axis": [
+                                1.9305697753597365e-15,
+                                1.9305718929421047e-15,
+                                1.0
+                            ],
+                            "parent": "DEF_Thumb_01_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Index_02_R",
+                            "head": [
+                                -0.8300000429153442,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.8600000143051147,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.7595432955917993e-16,
+                                1.88079096131566e-37,
+                                1.0
+                            ],
+                            "parent": "DEF_Index_01_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Middle_02_R",
+                            "head": [
+                                -0.8350000381469727,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.8670000433921814,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.7595432955917993e-16,
+                                9.4039548065783e-38,
+                                1.0
+                            ],
+                            "parent": "DEF_Middle_01_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Ring_02_R",
+                            "head": [
+                                -0.8300000429153442,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.8600000143051147,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.7595432955917993e-16,
+                                9.4039548065783e-38,
+                                1.0
+                            ],
+                            "parent": "DEF_Ring_01_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Pinky_02_R",
+                            "head": [
+                                -0.8220000267028809,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.847000002861023,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.7595432955917993e-16,
+                                0.0,
+                                1.0
+                            ],
+                            "parent": "DEF_Pinky_01_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Thumb_03_L",
+                            "head": [
+                                0.7659619450569153,
+                                -0.07596193999052048,
+                                1.440000057220459
+                            ],
+                            "tail": [
+                                0.7836396098136902,
+                                -0.09363961219787598,
+                                1.440000057220459
+                            ],
+                            "z_axis": [
+                                -1.9305697753597365e-15,
+                                1.9305706223926838e-15,
+                                1.0
+                            ],
+                            "parent": "DEF_Thumb_02_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Index_03_L",
+                            "head": [
+                                0.8600000143051147,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.8849999904632568,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.759543030894003e-16,
+                                8.407790785948902e-45,
+                                1.0
+                            ],
+                            "parent": "DEF_Index_02_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Middle_03_L",
+                            "head": [
+                                0.8670000433921814,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.8920000195503235,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.759543030894003e-16,
+                                1.6815581571897805e-44,
+                                1.0
+                            ],
+                            "parent": "DEF_Middle_02_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Ring_03_L",
+                            "head": [
+                                0.8600000143051147,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.8849999904632568,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.759543030894003e-16,
+                                1.6815581571897805e-44,
+                                1.0
+                            ],
+                            "parent": "DEF_Ring_02_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Pinky_03_L",
+                            "head": [
+                                0.847000002861023,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                0.8669999837875366,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                -3.759543030894003e-16,
+                                1.1210387714598537e-44,
+                                1.0
+                            ],
+                            "parent": "DEF_Pinky_02_L",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Thumb_03_R",
+                            "head": [
+                                -0.7659619450569153,
+                                -0.07596193999052048,
+                                1.440000057220459
+                            ],
+                            "tail": [
+                                -0.7836396098136902,
+                                -0.09363961219787598,
+                                1.440000057220459
+                            ],
+                            "z_axis": [
+                                1.9305695636014997e-15,
+                                1.9305708341509206e-15,
+                                1.0
+                            ],
+                            "parent": "DEF_Thumb_02_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Index_03_R",
+                            "head": [
+                                -0.8600000143051147,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.8849999904632568,
+                                -0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.7595432955917993e-16,
+                                3.363116314379561e-44,
+                                1.0
+                            ],
+                            "parent": "DEF_Index_02_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Middle_03_R",
+                            "head": [
+                                -0.8670000433921814,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.8920000195503235,
+                                -0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.7595432955917993e-16,
+                                1.6815581571897805e-44,
+                                1.0
+                            ],
+                            "parent": "DEF_Middle_02_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Ring_03_R",
+                            "head": [
+                                -0.8600000143051147,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.8849999904632568,
+                                0.009999999776482582,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.7595432955917993e-16,
+                                1.6815581571897805e-44,
+                                1.0
+                            ],
+                            "parent": "DEF_Ring_02_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        },
+                        {
+                            "name": "DEF_Pinky_03_R",
+                            "head": [
+                                -0.847000002861023,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "tail": [
+                                -0.8669999837875366,
+                                0.029999999329447746,
+                                1.4500000476837158
+                            ],
+                            "z_axis": [
+                                3.7595432955917993e-16,
+                                0.0,
+                                1.0
+                            ],
+                            "parent": "DEF_Pinky_02_R",
+                            "use_connect": true,
+                            "use_deform": true,
+                            "collections": []
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "GDE_HeelPivot_01_L",
+                "type": "EMPTY",
+                "parent": "DEF_Armature_01_M",
+                "parent_type": "BONE",
+                "parent_bone": "DEF_Foot_01_L",
+                "matrix_basis": [
+                    -1.0,
+                    -2.5234379563698894e-07,
+                    3.092049212227721e-07,
+                    -2.2351741790771484e-08,
+                    8.742277657347586e-08,
+                    -0.894420862197876,
+                    -0.4472156763076782,
+                    -0.13416317105293274,
+                    3.8941382740631525e-07,
+                    -0.44721323251724243,
+                    0.8944257497787476,
+                    -0.0894424095749855,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": true,
+                "custom_properties": {},
+                "display_type": "SPHERE",
+                "display_size": 0.014999999664723873
+            },
+            {
+                "name": "GDE_HeelPivot_01_R",
+                "type": "EMPTY",
+                "parent": "DEF_Armature_01_M",
+                "parent_type": "BONE",
+                "parent_bone": "DEF_Foot_01_R",
+                "matrix_basis": [
+                    -1.0,
+                    2.5234388090211723e-07,
+                    -3.092050917530287e-07,
+                    7.450580596923828e-09,
+                    -8.742277657347586e-08,
+                    -0.894420862197876,
+                    -0.4472156763076782,
+                    -0.13416318595409393,
+                    -3.8941402635828126e-07,
+                    -0.44721323251724243,
+                    0.8944257497787476,
+                    -0.0894424170255661,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": true,
+                "custom_properties": {},
+                "display_type": "SPHERE",
+                "display_size": 0.014999999664723873
+            },
+            {
+                "name": "GDE_InnerPivot_01_L",
+                "type": "EMPTY",
+                "parent": "DEF_Armature_01_M",
+                "parent_type": "BONE",
+                "parent_bone": "DEF_Foot_01_L",
+                "matrix_basis": [
+                    -1.0,
+                    -2.5234379563698894e-07,
+                    3.092049212227721e-07,
+                    0.05000000074505806,
+                    8.742277657347586e-08,
+                    -0.894420862197876,
+                    -0.4472156763076782,
+                    7.450580596923828e-09,
+                    3.8941382740631525e-07,
+                    -0.44721323251724243,
+                    0.8944257497787476,
+                    -0.02236052230000496,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": true,
+                "custom_properties": {},
+                "display_type": "SPHERE",
+                "display_size": 0.014999999664723873
+            },
+            {
+                "name": "GDE_InnerPivot_01_R",
+                "type": "EMPTY",
+                "parent": "DEF_Armature_01_M",
+                "parent_type": "BONE",
+                "parent_bone": "DEF_Foot_01_R",
+                "matrix_basis": [
+                    -1.0,
+                    2.5234388090211723e-07,
+                    -3.092050917530287e-07,
+                    -0.05000000819563866,
+                    -8.742277657347586e-08,
+                    -0.894420862197876,
+                    -0.4472156763076782,
+                    0.0,
+                    -3.8941402635828126e-07,
+                    -0.44721323251724243,
+                    0.8944257497787476,
+                    -0.022360526025295258,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": true,
+                "custom_properties": {},
+                "display_type": "SPHERE",
+                "display_size": 0.014999999664723873
+            },
+            {
+                "name": "GDE_OuterPivot_01_L",
+                "type": "EMPTY",
+                "parent": "DEF_Armature_01_M",
+                "parent_type": "BONE",
+                "parent_bone": "DEF_Foot_01_L",
+                "matrix_basis": [
+                    -1.0,
+                    -2.5234379563698894e-07,
+                    3.092049212227721e-07,
+                    -0.05000000447034836,
+                    8.742277657347586e-08,
+                    -0.894420862197876,
+                    -0.4472156763076782,
+                    7.450580596923828e-09,
+                    3.8941382740631525e-07,
+                    -0.44721323251724243,
+                    0.8944257497787476,
+                    -0.022360481321811676,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": true,
+                "custom_properties": {},
+                "display_type": "SPHERE",
+                "display_size": 0.014999999664723873
+            },
+            {
+                "name": "GDE_OuterPivot_01_R",
+                "type": "EMPTY",
+                "parent": "DEF_Armature_01_M",
+                "parent_type": "BONE",
+                "parent_bone": "DEF_Foot_01_R",
+                "matrix_basis": [
+                    -1.0,
+                    2.5234388090211723e-07,
+                    -3.092050917530287e-07,
+                    0.05000000447034836,
+                    -8.742277657347586e-08,
+                    -0.894420862197876,
+                    -0.4472156763076782,
+                    7.450580596923828e-09,
+                    -3.8941402635828126e-07,
+                    -0.44721323251724243,
+                    0.8944257497787476,
+                    -0.022360481321811676,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": true,
+                "custom_properties": {},
+                "display_type": "SPHERE",
+                "display_size": 0.014999999664723873
+            },
+            {
+                "name": "GDE_ToePivot_01_L",
+                "type": "EMPTY",
+                "parent": "DEF_Armature_01_M",
+                "parent_type": "BONE",
+                "parent_bone": "DEF_Foot_01_L",
+                "matrix_basis": [
+                    -1.0,
+                    -2.5234379563698894e-07,
+                    3.092049212227721e-07,
+                    1.4901161193847656e-08,
+                    8.742277657347586e-08,
+                    -0.894420862197876,
+                    -0.4472156763076782,
+                    0.08944212645292282,
+                    3.8941382740631525e-07,
+                    -0.44721323251724243,
+                    0.8944257497787476,
+                    0.02236076444387436,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": true,
+                "custom_properties": {},
+                "display_type": "SPHERE",
+                "display_size": 0.014999999664723873
+            },
+            {
+                "name": "GDE_ToePivot_01_R",
+                "type": "EMPTY",
+                "parent": "DEF_Armature_01_M",
+                "parent_type": "BONE",
+                "parent_bone": "DEF_Foot_01_R",
+                "matrix_basis": [
+                    -1.0,
+                    2.5234388090211723e-07,
+                    -3.092050917530287e-07,
+                    -2.2351741790771484e-08,
+                    -8.742277657347586e-08,
+                    -0.894420862197876,
+                    -0.4472156763076782,
+                    0.08944213390350342,
+                    -3.8941402635828126e-07,
+                    -0.44721323251724243,
+                    0.8944257497787476,
+                    0.022360756993293762,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "matrix_parent_inverse": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "show_in_front": true,
+                "custom_properties": {},
+                "display_type": "SPHERE",
+                "display_size": 0.014999999664723873
+            }
+        ]
+    }
+}

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+
+# -- PySide6, downloaded per Blender version by qshake.install_pyside()
+addons/aniseed_blender/vendor/qshake/_vendor/*/
+!addons/aniseed_blender/vendor/qshake/_vendor/general/

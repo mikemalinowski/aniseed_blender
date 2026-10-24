@@ -1,0 +1,7 @@
+{
+    "version": "0.1.0",
+    "description": "Experimental Blender rigging: a deform armature, a rebuilt control armature, and root, spine, neck, arm, leg and singular components",
+    "hosts": ["blender"],
+    "requires": ["aniseed_blender_standard"],
+    "enabled_by_default": true
+}

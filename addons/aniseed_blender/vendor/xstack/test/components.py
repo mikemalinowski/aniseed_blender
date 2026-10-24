@@ -1,0 +1,299 @@
+import xstack
+
+class MinimalComponent(xstack.Component):
+    """
+    The most basic style of component. No options, no requirements.
+    """
+    identifier = "MinimalComponent"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def run(self):
+        return True
+
+class VersionedComponent1(xstack.Component):
+    """
+    The most basic style of component. No options, no requirements.
+    """
+    identifier = "Versioned Component"
+    version = 1
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def run(self):
+        return True
+
+
+class VersionedComponent2(xstack.Component):
+    """
+    The most basic style of component. No options, no requirements.
+    """
+    identifier = "Versioned Component"
+    version = 2
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def run(self):
+        return True
+
+
+class VersionedComponent3(xstack.Component):
+    """
+    The most basic style of component. No options, no requirements.
+    """
+    identifier = "Versioned Component"
+    version = 3
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def run(self):
+        return True
+
+
+class FailingComponent(xstack.Component):
+    """
+    This component is designed to fail during a build
+    """
+
+    identifier = "FailingComponent"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def run(self):
+        raise Exception("Enforced Failure")
+
+
+class ComponentWithExpectedRequirementSet(xstack.Component):
+    """
+    This has one expected requirement
+    """
+    identifier = "ComponentWithExpectedRequirementSet"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.declare_input(
+            name="expected_requirement",
+            value=1,
+        )
+
+class ComponentWithExpectedRequirementNotSet(xstack.Component):
+    identifier = "ComponentWithExpectedRequirementNotSet"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.declare_input(
+            name="expected_requirement",
+            value="",
+            validate=True,
+        )
+
+
+class ComponentWithOption(xstack.Component):
+    identifier = "ComponentWithOption"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.declare_option(
+            name="test_option",
+            value="foo",
+        )
+
+    def run(self):
+        return self.option("test_option").get() == "bar"
+
+class ComponentWithPreExposeOption(xstack.Component):
+    identifier = "ComponentWithPreExposeOption"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.declare_option(
+            name="test_option",
+            value="foo",
+            pre_expose=True,
+        )
+
+    def suggested_label(self):
+        return self.identifier + " : " + self.option("test_option").get()
+    def run(self):
+        return self.option("test_option").get() == "bar"
+
+class InvalidComponent(xstack.Component):
+    identifier = "InvalidComponent"
+
+    def is_valid(self) -> bool:
+        return False
+
+class RunTestComponent(xstack.Component):
+
+    identifier = "RunTestComponent"
+
+    RUN_ORDER = []
+
+    def run(self) -> bool:
+        RunTestComponent.RUN_ORDER.append(self)
+
+        return True
+
+
+class ComponentWithTenOptions(xstack.Component):
+
+    identifier = "ComponentWithTenOptions"
+
+    RUN_ORDER = []
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for i in range(10):
+            self.declare_option(
+                name=f"test_option{i}",
+                value="foo",
+            )
+
+    def run(self) -> bool:
+        RunTestComponent.RUN_ORDER.append(self)
+
+        return True
+
+
+class ComponentWithOutputs(xstack.Component):
+
+    identifier = "ComponentWithOutputs"
+
+    RUN_ORDER = []
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for i in range(3):
+            self.declare_output(
+                name=f"test_output{i}",
+            )
+
+    def run(self) -> bool:
+        RunTestComponent.RUN_ORDER.append(self)
+
+        self.output("test_output0").set("A")
+        self.output("test_output1").set("B")
+        self.output("test_output2").set("C")
+        return True
+
+class ParentHookingComponent(xstack.Component):
+    """
+    Records the parent it has when it enters the stack, and hooks its
+    "Parent" input to its parent's default output - as many real components
+    do in on_enter_stack.
+    """
+    identifier = "ParentHookingComponent"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.parent_on_enter = None
+
+        self.declare_input(name="Parent", value="")
+        self.declare_output(name="Control", is_default=True)
+
+    def on_enter_stack(self):
+        self.parent_on_enter = self.parent
+        self.input("Parent").hook_to_parent()
+
+    def run(self):
+        return True
+
+class AdditionalDataComponent(xstack.Component):
+    """
+    Stores its "payload" attribute as additional data, and records what it was
+    given back when deserialised.
+    """
+    identifier = "AdditionalDataComponent"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.payload = dict()
+        self.received = None
+
+    def on_serialise(self):
+        return dict(self.payload)
+
+    def on_deserialise(self, additional_data):
+        self.received = additional_data
+
+    def run(self):
+        return True
+
+
+class ReturnsFalseComponent(xstack.Component):
+    """
+    Reports failure by returning False from run
+    """
+    identifier = "ReturnsFalseComponent"
+
+    def run(self):
+        return False
+
+
+class NestedBuildComponent(xstack.Component):
+    """
+    Builds the components below the component labelled by its "Target" option
+    """
+    identifier = "NestedBuildComponent"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.declare_option(name="Target", value="")
+
+    def run(self):
+        target = self.stack.get_component_by_label(self.option("Target").get())
+        return self.stack.build(build_below=target)
+
+
+class MigratingComponent(xstack.Component):
+    """
+    Version 2 renamed its "Old Name" option to "New Name"
+    """
+    identifier = "MigratingComponent"
+    version = 2
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.declare_option(name="New Name", value="")
+
+    @classmethod
+    def migrate(cls, data, from_version):
+        options = data.get("options", dict())
+
+        if from_version < 2 and "Old Name" in options:
+            options["New Name"] = options.pop("Old Name")
+
+        return data
+
+    def run(self):
+        return True
+
+
+class FailingAdditionalDataComponent(xstack.Component):
+    """
+    Raises from both additional data hooks.
+    """
+    identifier = "FailingAdditionalDataComponent"
+
+    def on_serialise(self):
+        raise RuntimeError("on_serialise failure")
+
+    def on_deserialise(self, additional_data):
+        raise RuntimeError("on_deserialise failure")
+
+    def run(self):
+        return True

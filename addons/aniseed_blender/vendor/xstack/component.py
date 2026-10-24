@@ -1,0 +1,1168 @@
+import re
+import uuid
+import json
+import copy
+import typing
+import logging
+import traceback
+import signalling
+
+from . import stack
+from .attributes import Option
+from .attributes import Input
+from .attributes import Output
+from .constants import Status
+
+log = logging.getLogger(__name__)
+
+# -- Default for Component.duplicate's parent argument, meaning "the same parent
+# -- as the original". None cannot be used, as it means the root of the stack.
+_SIBLING = object()
+
+
+# --------------------------------------------------------------------------------------
+# noinspection PyUnresolvedReferences,PyMethodMayBeStatic
+class Component:
+    """
+    A component is a an item that can be added to the stack. Typically, a component
+    will expose various options and inputs and then execute some code utilising
+    those options and inputs.
+
+    When implementing a component, you should subclass from this Component class and
+    provide a unique identifier. Components are stored in a class factory thus the
+    identifier is used to differentiate the different components.
+
+    Key things you should re-implement when subclassing a component:
+
+    All the functions you may re-implement are at the top of this class. Please
+    do not alter/modify/re-implement any functionality below the warning line.
+    """
+
+    # -- Please provide a unique identifier
+    identifier = ""
+
+    # -- This should resolve to an absolute path to a png file. If none is provide
+    # -- then a default icon will be given.
+    # -- To prevent hard coding the absolute path, you can use this syntax if your
+    # -- icon is in the same folder as your component .py:
+    # -- icon = os.path.join(os.path.dirname(__file__), "my_icon_name.png")
+    icon = ""
+
+    # -- Any component which is marked as deprecated will still be available
+    # -- from the factory but will typically not be visible in any ui's as
+    # -- a new component which can be added.
+    deprecated = False
+
+    # -- The version of this component's serialised data. Increase it whenever
+    # -- a change to the component's inputs, options or additional data means
+    # -- older data needs converting, and implement migrate to convert it.
+    # -- Data saved before versioning existed is treated as version 1.
+    version = 1
+
+    # ----------------------------------------------------------------------------------
+    # This MUST be re-implemented
+    def run(self) -> bool:
+        """
+        This should be re-implemented in your component and should contain all the
+        code which you want to trigger during the build.
+
+        Returning exactly False marks the component as Failed and stops the
+        build. Returning None or True (or anything else) is a success. Raising
+        an exception is also a failure.
+        """
+        return True
+
+    # ----------------------------------------------------------------------------------
+    # You may re-implement this
+    @classmethod
+    def migrate(cls, data: dict, from_version: int) -> dict:
+        """
+        Re-implement this to convert serialised data saved by an older version
+        of this component. It is called before the data is applied whenever
+        the stored version is lower than the class's version attribute.
+
+        The data is this component's serialised dictionary (component_type,
+        label, inputs, options, additional_data, children and so on). Change
+        only this component's own entries, as each child migrates itself.
+
+        :param data: A copy of the component's serialised data
+        :type data: dict
+
+        :param from_version: The version the data was saved with
+        :type from_version: int
+
+        :return: The data in the form the current version expects
+        :rtype: dict
+        """
+        return data
+
+    # ----------------------------------------------------------------------------------
+    # You may re-implement this
+    def is_valid(self) -> bool:
+        """
+        You can use this to test the validation of the options and requirements.
+        """
+        return True
+
+    # ----------------------------------------------------------------------------------
+    # You may re-implement this
+    def option_widget(self, option_name: str) -> "PySide6.QWidget":
+        """
+        This allows you to return a specific (or custom) QWidget to represent the
+        given option in any ui's.
+
+        This requires Qt, which is optional.
+
+        For example, your code here might look like this:
+
+        ```
+        if option_name == "foobar":
+            return qute.QLineEdit()
+        ```
+
+        If you do not want a specific option to be shown in the ui, you can do:
+
+        if option_name == "foobar":
+            return self.IGNORE_OPTION_FOR_UI
+        """
+        return None
+
+    # ----------------------------------------------------------------------------------
+    # You may re-implement this
+    def input_widget(self, requirement_name: str) -> "PySide6.QWidget":
+        """
+        This allows you to return a specific (or custom) QWidget to represent the
+        given requirement in any ui's.
+
+        This requires Qt, which is optional.
+
+        For example, your code here might look like this:
+
+        ```
+        if requirement_name == "foobar":
+            return qute.QLineEdit()
+        ```
+
+        If you do not want a specific requirement to be shown in the ui, you can do:
+
+        if requirement_name == "foobar":
+            return self.IGNORE_OPTION_FOR_UI
+        """
+        return None
+
+    # ----------------------------------------------------------------------------------
+    def on_add_to_stack(self):
+        """
+        Triggered when the component is first added to the stack
+        """
+        return None
+
+    # ----------------------------------------------------------------------------------
+    def on_enter_stack(self):
+        """
+        This allows you to run any code when this is added to the stack
+
+        :return:
+        """
+        return None
+
+    # ----------------------------------------------------------------------------------
+    def on_removed_from_stack(self):
+        """
+        This is triggered if this component is removed from the stack
+
+        :return:
+        """
+        return None
+
+    # ----------------------------------------------------------------------------------
+    def on_serialise(self) -> dict:
+        """
+        Re-implement this to store additional data alongside the component's
+        inputs and options when it is serialised. The returned dictionary must
+        be json serialisable.
+
+        It is stored in the component's serialised data under the
+        "additional_data" key, and passed back to on_deserialise when the
+        component is loaded.
+
+        :return: dict
+        """
+        return dict()
+
+    # ----------------------------------------------------------------------------------
+    def on_deserialise(self, additional_data: dict) -> None:
+        """
+        Re-implement this to restore the data returned by on_serialise.
+
+        It is called once the component has been added to the stack during a
+        deserialise (before its children are added), and when settings are
+        loaded onto the component.
+
+        :param additional_data: The "additional_data" dictionary stored for
+            this component. This is an empty dictionary if there is none, such
+            as for data saved before this was supported.
+        :type additional_data: dict
+
+        :return: None
+        """
+        return None
+
+    # ----------------------------------------------------------------------------------
+    def on_build_finished(self, successful: bool) -> None:
+        """
+        This is run when the build is complete and will pass bool declaring whether the
+        build was successful or not.
+
+        Args:
+             successful (bool): Whether the build was successful or not.
+        """
+        pass
+
+    # ----------------------------------------------------------------------------------
+    def on_build_started(self) -> None:
+        """
+        This is run immediately at the start of the build before any components have
+        their run functions called.
+        """
+        pass
+
+    # ----------------------------------------------------------------------------------
+    def help(self):
+        """
+        This function should be used to integrate any help mechanism you want to utilise
+        for your component.
+
+        Examples could include opening a url to a help webpage. Or loading a video or
+        other document.
+        """
+        return None
+
+    # ----------------------------------------------------------------------------------
+    def user_functions(self) -> typing.Dict[str, callable]:
+        return dict()
+
+    # ----------------------------------------------------------------------------------
+    def mixin_functions(self) -> typing.Dict[str, callable]:
+        """
+        Mixins implement this to contribute user facing actions to the component.
+
+        Do not call this to gather a component's actions - use
+        collated_mixin_functions, which combines the contributions of every
+        mixin in the hierarchy rather than just the first one the method
+        resolution order happens to find.
+
+        :return: Mapping of menu label to callable
+        :rtype: dict(str, callable)
+        """
+        return dict()
+
+    # ---------------------------------------------------------------------------------#
+    #                DO NOT RE-IMPLEMENT ANY FUNCTIONS BELOW THIS LINE                 #
+    # ---------------------------------------------------------------------------------#
+
+    # ----------------------------------------------------------------------------------
+    def collated_mixin_functions(self) -> typing.Dict[str, callable]:
+        """
+        Returns the combined mixin_functions of every class in this component's
+        hierarchy.
+
+        Each class is asked for its own contribution rather than letting the
+        method resolution order pick a single winner, so a component can compose
+        any number of mixins, in any base order, without the mixins having to
+        know about one another.
+
+        :return: Mapping of menu label to callable
+        :rtype: dict(str, callable)
+        """
+        collated = dict()
+
+        # -- Walk from the most base class forwards so that more derived
+        # -- contributions take precedence if two mixins offer the same label
+        for class_ in reversed(type(self).__mro__):
+
+            # -- Read straight off the class rather than using getattr, as that
+            # -- would find inherited implementations and call the same one once
+            # -- per subclass
+            function = class_.__dict__.get("mixin_functions")
+
+            if not function:
+                continue
+
+            collated.update(function(self))
+
+        return collated
+
+    # ----------------------------------------------------------------------------------
+    def __init__(self, label: str, stack: "stack.Stack", uuid_: typing.Optional[str] = None):
+        super().__init__()
+
+        self.stack: "stack.Stack" = stack
+
+        self._label: str = label
+        self._uuid: str = uuid_ or str(uuid.uuid4())
+        self._inputs: typing.List[Input] = list()
+        self._options: typing.List[Option] = list()
+        self._outputs: typing.List[Output] = list()
+        self._status: str = "not executed"
+        self._enabled = True
+        self._last_error: str = ""
+
+        # -- Hierarchy attributes
+        self.parent = None
+        self.children = []
+
+        # -- Declare our signals so that other mechanisms can tie into the events
+        # -- of our component
+        self.build_started = signalling.Signal()
+        self.build_complete = signalling.Signal()
+        self.changed = signalling.Signal()
+
+    def set_parent(self, parent=None, child_index=None):
+
+        # -- A component which already has a place in the stack is being moved,
+        # -- which changes the build order. That has to be reported as a change,
+        # -- or listeners which save the stack (such as aniseed's recipe on the
+        # -- rig) never hear of it. A component being placed for the first time
+        # -- is not reported here, as add_component reports the addition itself.
+        moving = self.parent is not None or self in self.stack.root_components
+
+        # -- Ensure we're removed as a root component
+        if self in self.stack.root_components:
+            self.stack.root_components.remove(self)
+
+        # -- Remove ourself from our current parent if we have
+        # -- one
+        if self.parent:
+            self.parent.children.remove(self)
+
+        self.parent = parent
+        # -- If we're given a component to be a child of, then
+        # -- we perform our reparenting otherwise we add ourselves
+        # -- as a root component
+        if isinstance(parent, Component):
+            # -- Add ourself as a child of the component
+            if child_index is not None:
+                parent.children.insert(child_index, self)
+            else:
+                parent.children.append(self)
+        else:
+            if child_index is not None:
+                self.stack.root_components.insert(child_index, self)
+            else:
+                self.stack.root_components.append(self)
+
+        if moving:
+            self.changed.emit()
+
+    def child_index(self):
+        if self.parent:
+            return self.parent.children.index(self)
+        else:
+            return self.stack.root_components.index(self)
+
+    # ----------------------------------------------------------------------------------
+    def wrapped_run(self) -> bool:
+        """
+        This should NOT be re-implemented. This is used specifically by the Stack class
+        to instigate your implement function whilst wrapped in the signal  and
+        logging mechanisms.
+
+        The component is marked as Failed if run raises an exception or returns
+        exactly False. Anything else (including None) is a success. The reason
+        for a failure is available from last_error.
+        """
+        self.build_started.emit()
+
+        self._last_error = ""
+        result = True
+
+        try:
+            if self.run() is False:
+                self._last_error = f"{self.label()} reported that it failed (its run returned False)"
+                log.warning(self._last_error)
+                result = False
+
+        except Exception:
+            self._last_error = traceback.format_exc()
+            log.exception(f"{self.label()} raised an exception during its run")
+            result = False
+
+        self.set_status(Status.Success if result else Status.Failed)
+        self.build_complete.emit()
+
+        return result
+
+    # ----------------------------------------------------------------------------------
+    def last_error(self) -> str:
+        """
+        Returns the reason the last run of this component failed. This is the
+        traceback text if run raised, a short message if run returned False,
+        or an empty string if the last run succeeded (or it has not run).
+        """
+        return self._last_error
+
+    # ----------------------------------------------------------------------------------
+    def is_enabled(self):
+        """
+        This will return whether the component is flagged as enabled. Any component
+        that is not enabled will not be executed.
+        """
+
+        return self._enabled
+
+    # ----------------------------------------------------------------------------------
+    def set_enabled(self, value):
+        """
+        Set the enabled state of the component. Any component that has this set to
+        false will not be executed.
+
+        A disabled component will also not execute any of its children.
+        """
+        self._enabled = value
+        self.changed.emit()
+
+    # ----------------------------------------------------------------------------------
+    def status(self) -> str:
+        """
+        This will return the current status string for the component
+        """
+        if not self.is_enabled():
+            return Status.Disabled
+
+        return self._status
+
+    # ----------------------------------------------------------------------------------
+    def set_status(self, status: str):
+        """
+        This will set the status of this component. Generally you should leave the Stack
+        class to call this.
+        """
+        self._status = status
+
+    # ----------------------------------------------------------------------------------
+    def uuid(self) -> str:
+        """
+        All component instances have a completely unique identifier - allowing the build
+        process and the Stack to keep track of all component instances. This function will
+        return this.
+        """
+        return self._uuid
+
+    # ----------------------------------------------------------------------------------
+    def label(self) -> str:
+        """
+        Returns the label for the component. The label generally has no bearing on the
+        building of the component, but it allows for the user to keep track of what
+        components are and their use cases.
+        """
+        return self._label
+
+    # ----------------------------------------------------------------------------------
+    def set_label(self, label: str):
+        """
+        Sets the label of the component. Note that this will trigger a change event
+        """
+        self._label = label
+        self.changed.emit()
+
+    # ----------------------------------------------------------------------------------
+    def suggested_label(self):
+        return self.identifier
+
+    # ----------------------------------------------------------------------------------
+    def declare_input(
+            self, name: str,
+            value: typing.Any = None,
+            description: str = "",
+            validate=True,
+            group=None,
+            should_inherit=False,
+            pre_expose=False,
+            hidden=False,
+    ):
+        """
+        This will add a requirement to the component, which will allow a user to
+        set the requirement and allow for your inmplement function to query that
+        value.
+
+        Args:
+            name (str): The name of the requirement.
+
+            value (Any): The value of the requirement.
+
+            description (str): The description of the requirement to be presented to
+                the user.
+
+            validate (bool): Whether or not the requirement should be validated prior
+                to its component being executed.
+
+            group (str): If given, this requirement will be grouped together in any
+                ui's with requirements of the same group.
+
+            should_inherit (bool): Whether or not the requirement should inherit
+                its value from its parent when it is initialised.
+
+            pre_expose (bool): Whether or not the requirement should be exposed. This
+                is to help inform ui's as to whether the user should be presented
+                with this requirement before the component is created.
+
+            hidden (bool): Whether or not the requirement should be hidden.
+        """
+        input_ = Input(
+            name=name,
+            value=value,
+            validate=validate,
+            description=description,
+            group=group,
+            should_inherit=should_inherit,
+            pre_expose=pre_expose,
+            hidden=hidden,
+            component=self,
+        )
+
+        self._inputs.append(input_)
+
+        # -- Trickle the change event of this requirement to the component level
+        input_.value_changed.connect(self.changed.emit)
+
+    # ----------------------------------------------------------------------------------
+    def declare_option(
+            self,
+            name: str,
+            value: typing.Any,
+            description: str = "",
+            group=None,
+            should_inherit=False,
+            pre_expose=False,
+            hidden=False,
+    ):
+        """
+        This will add an option to the component, which will allow a user to
+        set the option and allow for your inmplement function to query that
+        value.
+
+        Args:
+            name (str): The name of the option.
+
+            value (Any): The value of the option.
+
+            description (str): The description of the option to be presented to
+                the user.
+
+            group (str): If given, this option will be grouped together in any
+                ui's with options of the same group.
+
+            should_inherit (bool): Whether or not the option should inherit
+                its value from its parent when it is initialised.
+
+            pre_expose (bool): Whether or not the option should be exposed. This
+                is to help inform ui's as to whether the user should be presented
+                with this option before the component is created.
+
+            hidden (bool): Whether or not the option should be hidden.
+        """
+        option = Option(
+            name=name,
+            value=value,
+            description=description,
+            group=group,
+            should_inherit=should_inherit,
+            pre_expose=pre_expose,
+            hidden=hidden,
+            component=self,
+        )
+
+        self._options.append(option)
+
+        # -- Trickle the change event of the option to the component level
+        option.value_changed.connect(self.changed.emit)
+
+    # ----------------------------------------------------------------------------------
+    def declare_output(self, name: str, description: str = "", group=None, is_default=False):
+        """
+        An output is a guaranteed value that a component will fill in during its
+        run, and can be looked up by other components.
+
+        This mechanism allows for components to dynamically resolve values from
+        other components rather than have them explicitely set
+        """
+        output = Output(
+            name=name,
+            description=description,
+            component=self,
+            is_default=is_default,
+            group=group,
+        )
+        self._outputs.append(output)
+
+    # ----------------------------------------------------------------------------------
+    def default_output(self):
+        """
+        This will return the output that is marked as default. If one is not defined then
+        None will be returned.
+        """
+        for output_plug in self._outputs:
+            if output_plug.is_default():
+                return output_plug
+        return None
+
+    # ----------------------------------------------------------------------------------
+    def inputs(self) -> typing.List[Input]:
+        """
+        Returns a list of the inputs for this component
+        """
+        return self._inputs
+
+    # ----------------------------------------------------------------------------------
+    def input(self, name: str) -> typing.Optional[Input]:
+        """
+        Returns the Input object for the given requirement name
+        """
+        for input_ in self._inputs:
+            if input_.name() == name:
+                return input_
+
+        return None
+
+    # ----------------------------------------------------------------------------------
+    def options(self) -> typing.List[Option]:
+        """
+        Returns a list of theoptions for this component
+        """
+        return self._options
+
+    # ----------------------------------------------------------------------------------
+    def option(self, name: str) -> typing.Optional[Option]:
+        """
+        Returns the Option object for the given option name
+        """
+        for option_ in self._options:
+            if option_.name() == name:
+                return option_
+
+        return None
+
+    # ----------------------------------------------------------------------------------
+    def outputs(self) -> typing.List[Output]:
+        """
+        Returns a list of outputs for this component
+        Returns:
+
+        """
+        return self._outputs
+
+    # ----------------------------------------------------------------------------------
+    def output(self, name: str) -> typing.Optional[Output]:
+        """
+        Returns the Option object for the given option name
+        """
+        for output_ in self._outputs:
+            if output_.name() == name:
+                return output_
+
+        return None
+
+    def remove_output(self, name: str) -> None:
+        output_ = self.output(name)
+        self._outputs.remove(output_)
+
+    # ----------------------------------------------------------------------------------
+    def describe(self):
+        """
+        This will print a nicely formatted description of the component
+        """
+        lines = [
+            f"Component Type : {self.identifier}",
+            f"    Identifier : {self.uuid()}",
+            "    Options    :",
+        ]
+
+        value_limit = 200
+
+        option_len = max(
+            [
+                len(option.name())
+                for option in self.options()
+            ] or [0]
+        )
+
+        for option in self.options():
+            resolved_value = str(self.option(option.name()).get())
+            if len(resolved_value) > value_limit:
+                resolved_value = resolved_value[:value_limit - 3] + "..."
+
+            lines.append(f"        {option.name().ljust(option_len + 2, ' ')} : {resolved_value}")
+
+        lines.append("    Inputs :")
+
+        inputs_len = max(
+            [
+                len(input_.name())
+                for input_ in self.inputs()
+            ] or [0]
+        )
+
+        for input_ in self.inputs():
+            resolved_value = str(self.input(input_.name()).get())
+            if len(resolved_value) > value_limit:
+                resolved_value = resolved_value[:value_limit - 3] + "..."
+
+            lines.append(f"        {input_.name().ljust(inputs_len + 2, ' ')} : {resolved_value}")
+
+        # -- This is part of the build report rather than diagnostics, so it is
+        # -- printed as is. A log record only prefixes its first line, which
+        # -- breaks the column alignment.
+        print("\n".join(lines))
+
+    # ----------------------------------------------------------------------------------
+    def describe_outputs(self):
+        """
+        This will print the current value of each output, as part of the build
+        report (see describe)
+        """
+        lines = ["    Outputs :"]
+        value_limit = 200
+
+        output_len = max(
+            [
+                len(output.name())
+                for output in self.outputs()
+            ] or [0]
+        )
+
+        for output in self.outputs():
+            resolved_value = str(self.output(output.name()).get())
+            if len(resolved_value) > value_limit:
+                resolved_value = resolved_value[:value_limit - 3] + "..."
+
+            lines.append(f"        {output.name().ljust(output_len + 2, ' ')} : {resolved_value}")
+
+        print("\n".join(lines))
+
+    # ----------------------------------------------------------------------------------
+    def serialise(self) -> dict:
+        """
+        This will serialise down the complete state of the component into a dictionary
+        format that is json serialisable
+        """
+        option_data = dict()
+        input_data = dict()
+
+        for option in self.options():
+            serialised_data = option.serialise()
+            option_data[serialised_data["name"]] = serialised_data["value"]
+
+        for input_ in self.inputs():
+            serialised_data = input_.serialise()
+            input_data[serialised_data["name"]] = serialised_data["value"]
+
+        return dict(
+            component_type=self.identifier,
+            version=self.version,
+            inputs=input_data,
+            options=option_data,
+            label=self.label(),
+            uuid=self.uuid(),
+            enabled=self.is_enabled(),
+            additional_data=self.serialise_additional_data(),
+            children=[
+                child.serialise()
+                for child in self.children
+            ],
+        )
+
+    # ----------------------------------------------------------------------------------
+    def serialise_additional_data(self) -> dict:
+        """
+        Returns the result of on_serialise. As on_serialise is third party
+        code, any failure is printed and an empty dictionary returned, so one
+        component cannot stop the whole stack from being serialised.
+
+        :return: dict
+        """
+        # noinspection PyBroadException
+        try:
+            return self.on_serialise() or dict()
+
+        except Exception:
+            log.exception(f"on_serialise failed for {self.label()} ({self.identifier})")
+            return dict()
+
+    # ----------------------------------------------------------------------------------
+    def deserialise_additional_data(self, additional_data: dict) -> None:
+        """
+        Passes the given additional data to on_deserialise. As on_deserialise
+        is third party code, any failure is printed rather than raised, so one
+        component cannot stop the rest of the stack from loading.
+
+        :param additional_data: The "additional_data" dictionary stored for
+            this component, or None
+        :type additional_data: dict
+        """
+        # noinspection PyBroadException
+        try:
+            self.on_deserialise(additional_data or dict())
+
+        except Exception:
+            log.exception(f"on_deserialise failed for {self.label()} ({self.identifier})")
+
+    # ----------------------------------------------------------------------------------
+    def save_settings(self, filepath):
+        """
+        This will store this components serialised data to a json file
+
+        Args:
+            filepath: Absolute filepath to write to
+        """
+        data = self.serialise()
+
+        with open(filepath, "w") as f:
+            json.dump(
+                data,
+                f,
+                indent=4,
+                sort_keys=True,
+            )
+
+    # ----------------------------------------------------------------------------------
+    def load_settings(self, filepath):
+        """
+        This will load a json file of settings and attempt to set its own
+        inputs and options based on that data
+
+        Args:
+            filepath: Aboslute filepath to the settings file to load
+        """
+        with open(filepath, "r") as f:
+            data = json.load(f)
+
+        for name, value in data.get("inputs", {}).items():
+            input_ = self.input(name)
+            if input_:
+                input_.set(value)
+
+        for name, value in data.get("options", {}).items():
+            option = self.option(name)
+            if option:
+                option.set(value)
+
+        self.deserialise_additional_data(data.get("additional_data"))
+
+        self.changed.emit()
+
+    # ----------------------------------------------------------------------------------
+    def import_subtree(self, filepath: str) -> None:
+        """
+        Load a serialised subtree from a JSON file and add the contents
+        as children of this component. UUIDs are regenerated to avoid
+        collisions; labels are preserved.
+
+        Convenience wrapper for ``self.stack.import_subtree_under(
+        self, filepath)``.
+
+        :param filepath: Absolute path to a JSON file produced by
+            ``save_settings()`` or ``Stack.save()``.
+        """
+        self.stack.import_subtree_under(parent=self, filepath=filepath)
+
+    # ----------------------------------------------------------------------------------
+    @classmethod
+    def _substituted_value(
+        cls,
+        expression: "re.Pattern",
+        replace_with: str,
+        value: typing.Any,
+    ) -> typing.Any:
+        """
+        Returns the given value with the expression substituted throughout,
+        recursing into lists, tuples and dictionaries. Dictionary keys are
+        substituted as well as their values, as names are just as likely to be
+        held as keys. Anything which is not a string or a container is returned
+        untouched.
+
+        :param expression: The compiled pattern to search for
+        :type expression: re.Pattern
+
+        :param replace_with: String to substitute each match with
+        :type replace_with: str
+
+        :param value: The value to perform the substitution within
+        :type value: any
+
+        :return: The value with all substitutions applied
+        :rtype: any
+        """
+        if isinstance(value, str):
+            return expression.sub(replace_with, value)
+
+        if isinstance(value, dict):
+            return {
+                cls._substituted_value(expression, replace_with, key):
+                    cls._substituted_value(expression, replace_with, item)
+                for key, item in value.items()
+            }
+
+        if isinstance(value, (list, tuple)):
+            substituted = [
+                cls._substituted_value(expression, replace_with, item)
+                for item in value
+            ]
+
+            # -- Preserve whether we were given a mutable sequence or not
+            return tuple(substituted) if isinstance(value, tuple) else substituted
+
+        return value
+
+    # ----------------------------------------------------------------------------------
+    def search_and_replace(self, search_for: str, replace_with: str) -> None:
+        """
+        Applies a regex search and replace across the values of every input and
+        option on this component.
+
+        Values are traversed recursively, so strings nested within lists, tuples
+        and dictionaries are substituted too, including dictionary keys. Values
+        which are not strings are left as they are.
+
+        :param search_for: The pattern to search for. This is treated as a
+            regular expression.
+        :type search_for: str
+
+        :param replace_with: The string to substitute each match with
+        :type replace_with: str
+
+        :return: None
+        """
+        expression = re.compile(search_for)
+        self.set_label(self._substituted_value(expression, replace_with, self.label()))
+
+        for attribute in self.inputs() + self.options():
+
+            # -- Read the unresolved value, otherwise an attribute pointing at
+            # -- another component would have that component's value baked in
+            # -- as a literal rather than keeping its address
+            value = attribute.get(resolved=False)
+
+            substituted = self._substituted_value(expression, replace_with, value)
+
+            # -- Only write back where something actually changed, so we do not
+            # -- emit change events for untouched attributes
+            if substituted != value:
+                attribute.set(substituted)
+
+    # ----------------------------------------------------------------------------------
+    def duplicate(
+        self,
+        input_overrides=None,
+        option_overrides=None,
+        include_children=True,
+        search_for=None,
+        replace_with=None,
+        parent=_SIBLING,
+    ):
+        """
+        Create a duplicate of this component in the stack.
+
+        By default the entire subtree is duplicated — this component and all
+        its descendants — and parented as a sibling of the original. Pass
+        ``include_children=False`` to copy only this component without its
+        children.
+
+        ``input_overrides`` and ``option_overrides`` apply only to the
+        top-level duplicate; descendants keep their original values.
+
+        ``search_for`` and ``replace_with`` apply a regex search and replace
+        across the duplicate's label, input and option values once the copy
+        and any overrides are in place. It is applied to every duplicated
+        descendant too.
+
+        ``parent`` is the component the duplicate is parented under (None for
+        the root of the stack). By default it is the original's parent, so the
+        duplicate is a sibling of the original.
+
+        Each duplicate is parented under its final parent before its
+        on_enter_stack runs, so anything on_enter_stack does with the parent
+        (such as Attribute.hook_to_parent) sees the duplicated parent rather
+        than the original.
+        """
+        if parent is _SIBLING:
+            parent = self.parent
+
+        # -- Instance the new component
+        new_component = self.stack.add_component(
+            component_type=self.identifier,
+            label=self.label(),
+            suppress_events=True,
+        )
+
+        # -- Copy all the data
+        new_component.copy(self)
+
+        # -- Apply any overrides (top-level only)
+        for name, value in (input_overrides or dict()).items():
+            new_component.input(name).set(value)
+        for name, value in (option_overrides or dict()).items():
+            new_component.option(name).set(value)
+
+        # -- Re-name any data carried over from the source, now that the copy
+        # -- and any overrides are in place
+        if search_for is not None and replace_with is not None:
+            new_component.search_and_replace(
+                search_for=search_for,
+                replace_with=replace_with,
+            )
+
+        # -- Parent the component before its events are triggered, so that
+        # -- on_enter_stack sees the parent it will actually live under
+        new_component.set_parent(
+            parent=parent,
+        )
+
+        # -- Trigger its events
+        new_component.on_enter_stack()
+
+        self.stack.component_added.emit(new_component)
+
+        # -- Recursively duplicate the children directly under the new
+        # -- component. Snapshot self.children so the iteration is not affected
+        # -- by any changes to the stack during the duplication.
+        if include_children:
+            for child in list(self.children):
+                child.duplicate(
+                    include_children=True,
+                    search_for=search_for,
+                    replace_with=replace_with,
+                    parent=new_component,
+                )
+
+        return new_component
+
+    # ----------------------------------------------------------------------------------
+    def copy(self, other_component):
+        """
+        This method will copy all the settings from the given component to this
+        component.
+
+        Args:
+            other_component: Stack Component to copy settings from
+
+        Returns:
+
+        """
+        for input_ in self.inputs():
+            input_to_copy = other_component.input(input_.name())
+
+            if input_to_copy:
+                self.input(input_.name()).set(
+                    copy.deepcopy(input_to_copy.get(resolved=False)),
+                )
+
+        for option in self.options():
+            option_to_copy = other_component.option(option.name())
+
+            if option_to_copy:
+                self.option(option.name()).set(
+                    copy.deepcopy(option_to_copy.get(resolved=False)),
+                )
+
+        self.set_label(other_component.label())
+        self.set_enabled(other_component.is_enabled())
+
+    # ----------------------------------------------------------------------------------
+    def documentation(self):
+        if not self.__doc__:
+            return ""
+
+        lines = []
+
+        for line in self.__doc__.split("\n"):
+            line = line.strip()
+
+            if not line:
+                line = "\n"
+
+            lines.append(line)
+
+        return " ".join(lines)
+
+
+# --------------------------------------------------------------------------------------
+class MissingComponent(Component):
+    """
+    This stands in for a component whose type is not available in the component
+    library, such as one from a package that is not installed or one that has
+    since been removed.
+
+    It keeps all of the data it was loaded from and serialises it back unchanged,
+    so saving the stack does not lose anything. It cannot be built: it fails
+    validation, naming the missing component type. Remove it, switch it to an
+    available component type, or make the missing type available to build.
+    """
+
+    identifier = "Missing Component"
+
+    # -- This is never offered as a component to add
+    deprecated = True
+
+    # ----------------------------------------------------------------------------------
+    def __init__(
+            self,
+            label: str,
+            stack: "stack.Stack",
+            uuid_: typing.Optional[str] = None,
+            missing_identifier: str = "",
+            data: typing.Optional[dict] = None,
+    ):
+        super().__init__(label=label, stack=stack, uuid_=uuid_)
+
+        # -- Show the missing type wherever a component's type is displayed,
+        # -- whilst keeping it distinct from the real type so lookups by type
+        # -- never mistake this for a working component
+        self.identifier = f"{MissingComponent.identifier} : {missing_identifier}"
+
+        self.missing_identifier: str = missing_identifier
+        self._data: dict = copy.deepcopy(data or dict())
+
+    # ----------------------------------------------------------------------------------
+    def is_valid(self) -> bool:
+        log.warning(
+            f"{self.label()} cannot be built because its component type "
+            f"'{self.missing_identifier}' is not available. Remove it, switch it "
+            f"to an available component type, or install what provides it."
+        )
+        return False
+
+    # ----------------------------------------------------------------------------------
+    def run(self) -> bool:
+        raise RuntimeError(
+            f"{self.label()} cannot be built because its component type "
+            f"'{self.missing_identifier}' is not available."
+        )
+
+    # ----------------------------------------------------------------------------------
+    def serialise(self) -> dict:
+        """
+        Returns the data this was loaded from, updated with anything that can
+        be changed on a missing component: its label, uuid, enabled state and
+        children.
+        """
+        data = copy.deepcopy(self._data)
+        data["label"] = self.label()
+        data["uuid"] = self.uuid()
+
+        if "enabled" in data or not self.is_enabled():
+            data["enabled"] = self.is_enabled()
+
+        data["children"] = [
+            child.serialise()
+            for child in self.children
+        ]
+        return data
+
+    # ----------------------------------------------------------------------------------
+    def duplicate(self, *args, **kwargs):
+        log.warning(
+            f"{self.label()} cannot be duplicated because its component type "
+            f"'{self.missing_identifier}' is not available."
+        )
+        return None

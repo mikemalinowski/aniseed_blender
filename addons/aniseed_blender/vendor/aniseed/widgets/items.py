@@ -1,0 +1,65 @@
+from Qt import QtWidgets, QtCore, QtGui
+
+
+# --------------------------------------------------------------------------------------
+# noinspection PyUnresolvedReferences
+class ItemSelector(QtWidgets.QComboBox):
+    """
+    This will show a combo box with the given items for the user to select one
+    """
+
+    # ----------------------------------------------------------------------------------
+    def __init__(self, items, default_item, parent=None):
+        super().__init__(parent=parent)
+
+        idx_to_apply = 0
+
+        for iterative_idx, item in enumerate(items):
+            self.addItem(item)
+
+            if item == default_item:
+                idx_to_apply = iterative_idx
+
+        self.setCurrentIndex(idx_to_apply)
+
+
+# --------------------------------------------------------------------------------------
+# noinspection PyUnresolvedReferences
+class LocationSelector(QtWidgets.QComboBox):
+    """
+    This will show a combo box with the given items for the user to select one
+    """
+
+    # ----------------------------------------------------------------------------------
+    def __init__(self, config, value=None, parent=None):
+        super().__init__(parent=parent)
+
+        locations = [
+            config.middle,
+            config.left,
+            config.right,
+            config.front,
+            config.back,
+        ]
+
+        active_index = 0
+        for iterative_idx, item in enumerate(locations):
+            self.addItem(item)
+            if item == value:
+                active_index = iterative_idx
+        self.setCurrentIndex(active_index)
+
+
+# --------------------------------------------------------------------------------------
+# noinspection PyUnresolvedReferences
+class AxisSelector(QtWidgets.QComboBox):
+    """
+    This will show a combo box with the given items for the user to select one
+    """
+
+    # ----------------------------------------------------------------------------------
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        for iterative_idx, item in enumerate(["X", "Y", "Z"]):
+            self.addItem(item)

@@ -1,0 +1,688 @@
+import typing
+import logging
+import functools
+import qtility
+from Qt import QtWidgets, QtGui, QtCore
+
+from . import resources
+from . import options
+from . import config
+from . import tree
+from . import settings
+from . import runner
+from . import log_view
+
+log = logging.getLogger(__name__)
+
+
+# --------------------------------------------------------------------------------------
+# noinspection PyUnresolvedReferences
+class AppWidget(QtWidgets.QWidget):
+    """
+    This is the main widget that brings together the tree view and the options
+    view
+
+    Args:
+        app_config: This is a class that inherits from xstack_app.AppConfig. You can
+            use this to tailor how this application presents information and terminology
+    """
+
+    build_started = QtCore.Signal()
+    build_complete = QtCore.Signal()
+
+    # ----------------------------------------------------------------------------------
+    def __init__(self, app_config=None, allow_threading=True, parent: QtWidgets.QWidget = None):
+        super().__init__(parent=parent)
+
+        # -- Store the stack
+        self.stack = None
+        self.allow_threading = allow_threading
+        self.run_thread = None
+
+        # -- Store the app config
+        self.app_config = app_config or config.AppConfig
+
+        # -- These are properties used in full mode
+        self.tree_widget = None
+        self.editor_widget = None
+        self.splitter = None
+
+        # -- These are for our menu system
+        self.menu_bar = None
+        self.progress_bar = QtWidgets.QProgressBar(self)
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setVisible(False)
+
+        # -- Set the layout
+        self.setLayout(
+            qtility.layouts.slimify(
+                QtWidgets.QVBoxLayout(),
+            ),
+        )
+
+        # -- The content is split into tabs: the stack itself, and the log. The
+        # -- tabs are made once, and only the stack tab is rebuilt when the
+        # -- active stack changes, so the log survives switching stacks. The
+        # -- progress bar sits below the tabs so it shows on either.
+        self.tab_widget = QtWidgets.QTabWidget(self)
+        self.tab_widget.setDocumentMode(True)
+        self.tab_widget.setTabBarAutoHide(True)
+        self.layout().addWidget(self.tab_widget)
+        self.layout().addWidget(self.progress_bar)
+
+        self.stack_page = QtWidgets.QWidget(self)
+        self.stack_page.setLayout(
+            qtility.layouts.slimify(
+                QtWidgets.QVBoxLayout(),
+            ),
+        )
+        self.tab_widget.addTab(self.stack_page, self.app_config.label)
+
+        self.log_view = None
+
+        if self.app_config.show_log_tab:
+            self.log_view = log_view.LogView(
+                logger_names=self.app_config.log_logger_names,
+                parent=self,
+            )
+            self.log_view.counts_changed.connect(self.update_log_tab_title)
+            self.log_view.build_failed.connect(self.on_logged_build_failed)
+            self.tab_widget.addTab(self.log_view, "Log")
+
+        # -- Add the splash widget whilst we're not seeing any rigs
+        self.add_splash()
+
+        # -- Construct the menu on startup
+        self.build_menu()
+
+        self.build_started.connect(self.on_build_started)
+        self.build_complete.connect(self.on_build_complete)
+
+    def build(self, build_up_to=None,  build_only=None, build_below=None, validate_only=False):
+        """
+        This will trigger a threaded build of the stack
+
+        Args:
+            build_below: This will trigger a build of only components within this
+                component and below
+            validate_only: This will trigger a validation pass only
+        """
+        self.build_started.emit()
+        if self.allow_threading:
+            self.run_thread = runner.ThreadedRun(
+                stack=self.stack,
+                build_up_to=build_up_to,
+                build_below=build_below,
+                build_only=build_only,
+                validate_only=validate_only,
+            )
+            self.run_thread.build_progressed.connect(self.update_progressbar)
+            self.run_thread.finished.connect(self.build_complete.emit)
+            self.run_thread.start()
+
+        else:
+            # -- Only listen to the stack for the duration of this build, so
+            # -- repeated builds do not stack up connections
+            stack = self.stack
+            stack.build_progressed.connect(self.update_progressbar)
+            stack.build_failed.connect(self.on_build_failed)
+
+            try:
+                stack.build(
+                    build_up_to=build_up_to,
+                    build_below=build_below,
+                    build_only=build_only,
+                    validate_only=validate_only,
+                )
+
+            finally:
+                stack.build_progressed.disconnect(self.update_progressbar)
+                stack.build_failed.disconnect(self.on_build_failed)
+                self.build_complete.emit()
+
+    def update_progressbar(self, percentage):
+        """
+        This will update the progress bar value with the given percentage
+
+        Args:
+            percentage: The percentage value to update
+        """
+        self.progress_bar.setValue(percentage)
+        self.progress_bar.setFormat(f"Running : {int(percentage)}%")
+
+    def on_build_started(self):
+        """
+        This event is called with the build of the stack is initiated.
+        """
+        self.progress_bar.setValue(0)
+        self.progress_bar.setVisible(True)
+        self.menu_bar.setEnabled(False)
+        self.editor_widget.setVisible(False)
+
+    def on_build_complete(self):
+        """
+        This event is called when the build is complete
+        """
+        self.progress_bar.setVisible(False)
+        self.menu_bar.setEnabled(True)
+        self.editor_widget.setVisible(True)
+
+    def on_build_failed(self, component=None, details: str = ""):
+        """
+        This event is called when a build started from this widget fails. It
+        selects the component that failed, if there is one, so the user can see
+        it straight away. It is not called for threaded builds.
+
+        Args:
+            component: The component which failed or was invalid, or None
+            details: The reason for the failure
+        """
+        if component and self.tree_widget:
+            self.tree_widget.select_component(component)
+
+    # ----------------------------------------------------------------------------------
+    def on_logged_build_failed(self):
+        """
+        This event is called when the log tab sees a build fail, whichever way
+        the build was started. It brings the log to the front, unless the user
+        has turned that off in the preferences.
+        """
+        if self.log_view and self.app_config.get_setting("switch_to_log_on_failure"):
+            self.tab_widget.setCurrentWidget(self.log_view)
+
+    # ----------------------------------------------------------------------------------
+    def update_log_tab_title(self, warnings: int, errors: int):
+        """
+        Shows the number of warnings and errors in the title of the log tab, so
+        they are visible from the stack tab.
+        """
+        counts = []
+
+        if warnings:
+            counts.append(f"{warnings} warning{'s' if warnings > 1 else ''}")
+
+        if errors:
+            counts.append(f"{errors} error{'s' if errors > 1 else ''}")
+
+        title = "Log"
+        if counts:
+            title = f"Log ({', '.join(counts)})"
+
+        self.tab_widget.setTabText(self.tab_widget.indexOf(self.log_view), title)
+
+    # ----------------------------------------------------------------------------------
+    def show_component_in_log(self, component):
+        """
+        Brings the log tab to the front, scrolled to the given component's part
+        of the latest build's report.
+        """
+        if not self.log_view:
+            return
+
+        if self.log_view.show_component(component):
+            self.tab_widget.setCurrentWidget(self.log_view)
+
+    # ----------------------------------------------------------------------------------
+    def stack_layout(self) -> QtWidgets.QVBoxLayout:
+        """
+        Returns the layout of the stack tab. Subclasses which add widgets to the
+        stack's view should add them here rather than to the widget's own
+        layout, which holds the tabs.
+        """
+        return self.stack_page.layout()
+
+    # ----------------------------------------------------------------------------------
+    def add_splash(self):
+        """
+        Adds a splash widget into the layout
+        """
+        # -- Add the splash image to the background whilst its blank
+        splash = QtWidgets.QLabel(parent=self)
+        self.stack_layout().addWidget(splash)
+        splash.setPixmap(
+            QtGui.QPixmap(
+                self.app_config.icon,
+            ),
+        )
+        splash.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter )
+        return splash
+
+    # ----------------------------------------------------------------------------------
+    def additional_menus(self) -> typing.List:
+        """
+        This function may be re-implemented when subclassing to request the addition
+        of further menu items
+
+        When re-implementing you should return a list of QMenu's you want to add
+        to the app widgets titlebar
+        :return:
+        """
+        return list()
+
+    # ----------------------------------------------------------------------------------
+    def edit_menu_actions(self) -> typing.Dict[str, typing.Callable]:
+        """
+        This function may be re-implemented when subclassing to add entries to
+        the Edit menu, below Preferences.
+
+        When re-implementing you should return a dictionary of menu labels to
+        the callables they trigger
+        """
+        return dict()
+
+    # ----------------------------------------------------------------------------------
+    def set_active_stack(self, stack: typing.Optional["xstack.Stack"]):
+        """
+        This function will rebuild the layout of the tool based on the stack we expect
+        to be showing as the currently active stack
+        """
+        # -- Empty the current layout
+        qtility.layouts.empty(
+            self.stack_layout(),
+        )
+
+        # -- The log captures the builds of whichever stack is showing
+        if self.log_view:
+            self.log_view.watch_stack(stack)
+
+        # -- Always update self.stack so listeners and downstream code
+        # -- (e.g. subclasses' set_active_stack overrides) see the new
+        # -- state. Previously this assignment was skipped on the
+        # -- ``stack is None`` branch, leaving self.stack pointing at a
+        # -- now-stale previous stack.
+        self.stack = stack
+
+        # -- If we have not been given a stack, we clear the layout and
+        # -- rebuild the menu
+        if not stack:
+            self.tree_widget = None
+            self.editor_widget = None
+            self.splitter = None
+
+            self.add_splash()
+            self.build_menu()
+
+            return
+
+        # -- We have been given a stack, so rebuild the layout.
+        self.build_layout()
+
+    # ----------------------------------------------------------------------------------
+    def build_menu(self):
+        """
+        This will regenerate the tool menu
+        """
+        # -- We do not hard code the term "stack" into the App. This is because the
+        # -- stack library will be used for many purposes, and in most cases the user
+        # -- will want to tailor the terminology. Therefore we get the label from
+        # -- the app configuration class.
+        stack_label = self.app_config.label
+
+        # -- Create a new menu bar
+        self.menu_bar = QtWidgets.QMenuBar(parent=self)
+
+        # -- Add the stacks menu to the menu
+        stacks_menu = QtWidgets.QMenu("File", parent=self)
+
+        # -- We always expose the new stack option regardless of what is in the scene
+        new_stack_action = stacks_menu.addAction(
+            QtGui.QIcon(self.app_config.icon),
+            f"New {stack_label}",
+       )
+
+        new_stack_action.triggered.connect(
+            functools.partial(
+                self.create_new_stack,
+            )
+        )
+        stacks_menu.addSeparator()
+
+        import_stack_action = stacks_menu.addAction(
+            QtGui.QIcon(self.app_config.open_icon),
+            f"Open {stack_label} File",
+        )
+
+        import_stack_action.triggered.connect(
+            functools.partial(
+                self.open,
+            )
+        )
+
+        export_stack_action = stacks_menu.addAction(
+            QtGui.QIcon(self.app_config.save_icon),
+            f"Save {stack_label} File",
+        )
+        export_stack_action.triggered.connect(
+            functools.partial(
+                self.export_stack,
+            )
+        )
+        stacks_menu.addSeparator()
+
+        self.menu_bar.addMenu(stacks_menu)
+
+        # -- Create the settings menu
+        settings_menu = QtWidgets.QMenu("Edit", parent=self)
+
+        settings_editor_action = settings_menu.addAction(f"Preferences")
+        settings_editor_action.triggered.connect(
+            functools.partial(
+                settings.show_settings,
+                self.app_config,
+            ),
+        )
+
+        # -- Add any entries the application adds to the Edit menu
+        edit_actions = self.edit_menu_actions()
+
+        if edit_actions:
+            settings_menu.addSeparator()
+
+            for label, function in edit_actions.items():
+                edit_action = settings_menu.addAction(label)
+                edit_action.triggered.connect(
+                    functools.partial(
+                        function,
+                    )
+                )
+
+        self.menu_bar.addMenu(settings_menu)
+
+        for additional_menu in self.additional_menus():
+            self.menu_bar.addMenu(additional_menu)
+            
+        # -- Finally, apply the menu bar
+        self.layout().setMenuBar(self.menu_bar)
+
+
+        # -- If we're asked not to show the menu then lets immediately
+        # -- exit.
+        self.menu_bar.setVisible(self.app_config.show_menu_bar)
+
+    # ----------------------------------------------------------------------------------
+    def build_layout(self):
+        """
+        This will build the overall content of the tool
+        """
+        # -- Empty the current layout
+        qtility.layouts.empty(
+            self.stack_layout(),
+        )
+
+        self.flexible_layout = QtWidgets.QVBoxLayout()
+        self.stack_layout().addLayout(self.flexible_layout)
+
+        self.splitter = QtWidgets.QSplitter()
+        self.flexible_layout.addWidget(self.splitter)
+
+        self.tree_widget = tree.BuildTreeWidget(self.stack, self.app_config, app=self)
+        self.splitter.addWidget(self.tree_widget)
+        self.tree_widget.is_updated.connect(self.propagate_component_selection)
+        self.tree_widget.currentItemChanged.connect(self.propagate_component_selection)
+
+        self.editor_widget = options.ComponentEditor(parent=self)
+        self.splitter.addWidget(self.editor_widget)
+
+        # -- The tree draws labels directly from the components, so a repaint is
+        # -- enough to show a name changed in the editor
+        self.editor_widget.label_changed.connect(self.tree_widget.viewport().update)
+
+        self.flexible_layout.setStretch(0, 1)
+        self.flexible_layout.setStretch(1, 0)
+
+        self.set_layout_orientation()
+
+        if self.app_config.splitter_bias is not None:
+            orientation = self.splitter.orientation()
+
+            if orientation == QtCore.Qt.Vertical:
+                scope = self.height()
+            else:
+                scope = self.width()
+
+            tree_size = scope * self.app_config.splitter_bias
+            option_size = scope - tree_size
+
+            self.splitter.setSizes([tree_size, option_size])
+
+    # ----------------------------------------------------------------------------------
+    def set_layout_orientation(self):
+        """
+        We adjust the layout of the tool based on whether its wide or tall - as
+        different users like to work in different states.
+        """
+
+        if not self.tree_widget:
+            return
+
+        force_vertical = False
+        force_horizontal = False
+
+        if not self.app_config.get_setting("auto_adjust_orientation"):
+
+            if self.app_config.get_setting("use_vertical_alignment"):
+                force_vertical = True
+
+            else:
+                force_horizontal = True
+
+        if self.app_config.forced_orientation == "vertical":
+            force_vertical = True
+            force_horizontal = False
+
+        if self.app_config.forced_orientation == "horizontal":
+            force_vertical = False
+            force_horizontal = True
+
+        widget_is_wide = self.rect().width() > self.rect().height()
+        use_horizontal_alignment = widget_is_wide
+
+        if force_horizontal:
+            use_horizontal_alignment = True
+
+        if force_vertical:
+            use_horizontal_alignment = False
+
+        if use_horizontal_alignment:
+            self.flexible_layout.setDirection(QtWidgets.QBoxLayout.LeftToRight)
+            self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        else:
+            self.flexible_layout.setDirection(QtWidgets.QBoxLayout.TopToBottom)
+            self.splitter.setOrientation(QtCore.Qt.Vertical)
+
+    # ----------------------------------------------------------------------------------
+    def create_new_stack(self):
+        """
+        This will take the user through the flow of generating a new stack
+
+        :return:
+        """
+        stack_label = self.app_config.label
+        
+        name = qtility.request.text(
+            title=f"New {stack_label}",
+            message=f"Please provide a name for the {stack_label}",
+            parent=self,
+        )
+
+        if not name:
+            return None
+
+        new_stack = self.app_config.stack_class(
+            label=name,
+            component_paths=self.app_config.component_paths,
+        )
+
+        self.switch_stack(new_stack)
+        self.build_menu()
+
+        return new_stack
+
+    # ----------------------------------------------------------------------------------
+    def switch_stack(self, stack: "xstack.Stack"):
+        """
+        Makes the given stack the one shown by the tool. The new stack and open
+        flows both come through here, so re-implement this (rather than
+        set_active_stack) to tie into switching stacks.
+
+        Args:
+            stack: The stack to show
+        """
+        self.set_active_stack(stack)
+
+    # ----------------------------------------------------------------------------------
+    def load_stack_file(self, filepath: str) -> "xstack.Stack":
+        """
+        Returns the stack to show for the given stack file. By default this is a
+        new stack loaded from the file. Re-implement this to load the file into
+        an existing stack instead.
+
+        Args:
+            filepath: The json file to load
+        """
+        return self.app_config.stack_class.open(
+            data=filepath,
+            component_paths=self.app_config.component_paths,
+        )
+
+    # ----------------------------------------------------------------------------------
+    def open(self, filepath=None, silent=False):
+        """
+        This defines the user flow for importing stack data. Returns the filepath
+        that was opened, or None if the user cancelled.
+        """
+
+        stack_label = self.app_config.label
+
+        if not silent:
+            confirmation = qtility.request.confirmation(
+                title=f"Import {stack_label}",
+                message=(
+                    f"Importing a {stack_label} will clear any current {stack_label} data. "
+                    "Are you sure you want to continue?"
+                ),
+                parent=self,
+            )
+
+            if not confirmation:
+                return None
+
+        if not filepath:
+            filepath = qtility.request.filepath(
+                title=f"Import {stack_label}",
+                filter_="*.json (*.json)",
+                parent=self,
+                save=False,
+            )
+
+        if not filepath:
+            return None
+
+        try:
+            new_stack = self.load_stack_file(filepath)
+
+        except (OSError, ValueError):
+            log.exception(f"Failed to open {filepath}")
+            return None
+
+        if not new_stack:
+            return None
+
+        self.switch_stack(new_stack)
+
+        return filepath
+
+    # ----------------------------------------------------------------------------------
+    def export_stack(self, additional_data=None):
+        """
+        Exports the current stack to a stack file
+        """
+        stack_label = self.app_config.label
+
+        filepath = qtility.request.filepath(
+            title=f"Export {stack_label}",
+            filter_="*.json (*.json)",
+            save=True,
+            parent=self,
+        )
+
+        if not filepath:
+            return
+
+        self.stack.save(
+            filepath,
+            additional_data=additional_data,
+        )
+
+    # ----------------------------------------------------------------------------------
+    def propagate_component_selection(self, *args, **kwargs):
+        """
+        We use this as a pass-through mechanism, so that when a component is selected
+        in the tree view we call the set_component in the editor panel.
+        """
+        component = self.tree_widget.current_component()
+        self.editor_widget.set_component(component)
+
+    # ----------------------------------------------------------------------------------
+    # noinspection PyPep8Naming
+    def resizeEvent(self, event):
+        """
+        Wen the window is resized check out layout orientation
+        """
+        super().resizeEvent(event)
+        self.set_layout_orientation()
+
+
+# --------------------------------------------------------------------------------------
+# noinspection PyUnresolvedReferences
+class AppWindow(qtility.windows.MemorableWindow):
+
+    def __init__(self, app_config=None, allow_threading=True, storage_identifier="xstack", *args, **kwargs):
+        super().__init__(storage_identifier=storage_identifier, *args, **kwargs)
+
+        self.app_config = app_config or config.AppConfig
+
+        # -- Set the window properties
+        self.setObjectName(self.app_config.label)
+        self.setWindowTitle(self.app_config.label)
+
+        if self.app_config.icon:
+            self.setWindowIcon(
+                QtGui.QIcon(
+                    self.app_config.icon,
+                ),
+            )
+
+        widget = self.app_config.app_widget or AppWidget
+        self.core = widget(
+            app_config=app_config,
+            allow_threading=allow_threading,
+            parent=self,
+        )
+        self.setCentralWidget(self.core)
+
+
+# ------------------------------------------------------------------------------
+# noinspection PyUnresolvedReferences,PyUnusedLocal
+def launch(app_config=None, blocking: bool = True, load_file: str = None, run_on_launch: bool = False, allow_threading=True, active_stack=None, storage_identifier="xstack", *args, **kwargs):
+    """
+    This function should be called to invoke the app ui
+    """
+    q_app = qtility.app.get()
+
+    w = AppWindow(app_config=app_config, allow_threading=allow_threading, storage_identifier=storage_identifier, *args, **kwargs)
+    w.show()
+
+    if load_file:
+        w.core.open(filepath=load_file, silent=True)
+
+    if active_stack:
+        w.core.set_active_stack(active_stack)
+
+    if run_on_launch and w.core.stack:
+        w.core.build()
+
+    if blocking:
+        q_app.exec_()
+
+    return w
