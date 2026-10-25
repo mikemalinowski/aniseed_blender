@@ -1,0 +1,7 @@
+{
+    "version": "0.1.0",
+    "description": "The Aniseed Riggers Toolkit: tools for working on rigs, such as applying and saving control shapes",
+    "hosts": ["blender"],
+    "requires": ["aniseed_blender_standard", "aniseed_blender_experimental"],
+    "toolkit": "Riggers"
+}

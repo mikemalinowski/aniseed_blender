@@ -267,16 +267,16 @@ class Leg(base.LimbComponent, MirrorMixin):
 
         # -- Visuals and collections
         for bone, size in zip(fk, (0.6, 0.5, 1.2, 1.6)):
-            builder.make_control(bone, "circle", size=size, collection=base.FK)
+            builder.make_control(bone, "core_circle", size=size, collection=base.FK)
 
         # -- The paddle is drawn upright (around the bone), so it is turned to
         # -- lie on the ground, and moved forward to sit under the foot
         builder.make_control(
-            foot_ik, "foot_paddle", size=0.5, collection=base.IK,
+            foot_ik, "core_foot_paddle", size=0.5, collection=base.IK,
             rotation=(math.radians(90), 0, 0), translation=(0, foot_length * 0.5, 0),
         )
-        builder.make_control(pole, "sphere", size=1.0, collection=base.IK)
-        builder.make_control(settings, "config", size=1.5, color=base.SECONDARY_COLOR, collection=base.PROPERTIES)
+        builder.make_control(pole, "core_sphere", size=1.0, collection=base.IK)
+        builder.make_control(settings, "core_config", size=1.5, color=base.SECONDARY_COLOR, collection=base.PROPERTIES)
         builder.make_mechanical(*ik, *blend, heel, outer, inner, tip, ball, foot_target, toe_target)
 
         for deform_bone, blend_bone in zip(leg, blend):

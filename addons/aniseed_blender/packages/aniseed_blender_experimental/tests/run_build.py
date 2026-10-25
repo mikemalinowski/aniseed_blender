@@ -128,7 +128,7 @@ def create_biped():
     rig.add_component(
         "Experiment : Singular",
         "Prop L",
-        options={"Description": "Prop", "Location": "L", "Shape": "sphere"},
+        options={"Description": "Prop", "Location": "L", "Shape": "core_sphere"},
         parent=arm,
     )
 
@@ -139,7 +139,7 @@ def create_biped():
     rig.add_component(
         "Experiment : Singular",
         "Hat",
-        options={"Description": "Hat", "Shape": "teardrop"},
+        options={"Description": "Hat", "Shape": "core_teardrop"},
         parent=spine,
     )
     clear_selection()

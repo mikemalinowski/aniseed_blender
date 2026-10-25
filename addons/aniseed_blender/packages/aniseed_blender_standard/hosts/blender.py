@@ -2,7 +2,8 @@
 Provides the Blender host for aniseed. It:
 
     * launches the aniseed app as a Qt window parented to Blender, via qshake
-    * adds an "Aniseed" menu to Blender's top bar
+    * adds an "Aniseed" menu to Blender's top bar, which also opens the
+      toolkits (see aniseed_blender_standard.toolkit)
     * gives every build a full Blender context and makes it one undo step
     * keeps aniseed's shared rigs in step with undo and with files being
       saved and loaded
@@ -13,7 +14,9 @@ Blender invalidates every python reference to its data whenever a file is
 loaded or an undo/redo happens. aniseed's rigs hold their host object, so the
 rigs are released at those points and the app is pointed at the new data.
 """
+import sys
 import logging
+import importlib
 import contextlib
 import webbrowser
 
@@ -114,6 +117,11 @@ class BlenderHost(aniseed.EmbeddedHost):
         if window:
             window.close()
 
+        # -- Only if a toolkit has been opened, so Qt is not started for nothing
+        toolkit_app = sys.modules.get("aniseed_blender_standard.toolkit.app")
+        if toolkit_app is not None:
+            toolkit_app.close_all()
+
     # ----------------------------------------------------------------------------------
     @contextlib.contextmanager
     def build_context(self, rig):
@@ -128,12 +136,12 @@ class BlenderHost(aniseed.EmbeddedHost):
         Modes and the selection are left to the rig's components, so each
         stack decides what state the scene is left in.
         """
-        _push_undo(f"Before Aniseed Build : {rig.label}")
+        push_undo(f"Before Aniseed Build : {rig.label}")
 
-        with bpy.context.temp_override(**_full_context()):
+        with bpy.context.temp_override(**full_context()):
             yield
 
-        _push_undo(f"Aniseed Build : {rig.label}")
+        push_undo(f"Aniseed Build : {rig.label}")
 
     # ----------------------------------------------------------------------------------
     def on_rig_save(self, rig) -> dict:
@@ -444,7 +452,7 @@ def _create_bones(obj, data: dict):
     previous_active = view_layer.objects.active
     previous_selection = [each for each in view_layer.objects if each.select_get()]
 
-    with bpy.context.temp_override(**_full_context()):
+    with bpy.context.temp_override(**full_context()):
         if previous_active and previous_active.mode != "OBJECT":
             with bpy.context.temp_override(active_object=previous_active, object=previous_active):
                 bpy.ops.object.mode_set(mode="OBJECT")
@@ -481,7 +489,7 @@ def _create_bones(obj, data: dict):
 # --------------------------------------------------------------------------------------
 # -- Context
 # --------------------------------------------------------------------------------------
-def _full_context() -> dict:
+def full_context() -> dict:
     """
     Returns the keyword arguments for bpy.context.temp_override which give
     the main window, its screen, and its largest 3D viewport (with that
@@ -515,13 +523,13 @@ def _full_context() -> dict:
     return context
 
 
-def _push_undo(message: str):
+def push_undo(message: str):
     """
     Adds an undo step with the given name, so the changes made since the last
     step can be undone in one go.
     """
     try:
-        with bpy.context.temp_override(**_full_context()):
+        with bpy.context.temp_override(**full_context()):
             bpy.ops.ed.undo_push(message=message)
 
     except RuntimeError:
@@ -611,6 +619,29 @@ class ANISEED_OT_launch(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class ANISEED_OT_toolkit(bpy.types.Operator):
+    """Open an Aniseed toolkit"""
+    bl_idname = "aniseed.toolkit"
+    bl_label = "Aniseed Toolkit"
+
+    package: bpy.props.StringProperty(options={"HIDDEN"})
+
+    def execute(self, context):
+        importlib.import_module(self.package).launch()
+        return {"FINISHED"}
+
+
+def _toolkit_packages() -> list:
+    """
+    Returns the active aniseed packages which are toolkits (their
+    aniseed_package.json has a "toolkit" entry), by toolkit name.
+    """
+    return sorted(
+        (package for package in aniseed.packages.active() if package.metadata.get("toolkit")),
+        key=lambda package: package.metadata["toolkit"],
+    )
+
+
 class ANISEED_OT_website(bpy.types.Operator):
     """Open the Aniseed website"""
     bl_idname = "aniseed.website"
@@ -659,6 +690,15 @@ class ANISEED_MT_menu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator(ANISEED_OT_launch.bl_idname, icon="ARMATURE_DATA")
+
+        for package in _toolkit_packages():
+            operator = layout.operator(
+                ANISEED_OT_toolkit.bl_idname,
+                text=f"{package.metadata['toolkit']} Toolkit",
+                icon="TOOL_SETTINGS",
+            )
+            operator.package = package.name
+
         layout.separator()
         layout.operator(ANISEED_OT_website.bl_idname, icon="URL")
         layout.separator()
@@ -669,6 +709,7 @@ class ANISEED_MT_menu(bpy.types.Menu):
 
 _CLASSES = (
     ANISEED_OT_launch,
+    ANISEED_OT_toolkit,
     ANISEED_OT_website,
     ANISEED_OT_reload,
     ANISEED_OT_about,

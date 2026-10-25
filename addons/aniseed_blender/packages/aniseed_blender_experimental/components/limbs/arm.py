@@ -157,15 +157,15 @@ class Arm(base.LimbComponent, MirrorMixin):
             builder.blend(blend_bone, fk_bone, ik_bone, settings)
 
         # -- Visuals and collections
-        builder.make_control(clavicle_control, "pinched_circle", size=2.0)
+        builder.make_control(clavicle_control, "core_pinched_circle", size=2.0)
         for bone, size in zip(fk, (0.8, 0.8, 1.6)):
-            builder.make_control(bone, "circle", size=size, collection=base.FK)
-        builder.make_control(hand_ik, "cube", size=1.0, collection=base.IK)
-        builder.make_control(pole, "sphere", size=1.0, collection=base.IK)
-        builder.make_control(settings, "config", size=1.5, color=base.SECONDARY_COLOR, collection=base.PROPERTIES)
+            builder.make_control(bone, "core_circle", size=size, collection=base.FK)
+        builder.make_control(hand_ik, "core_cube", size=1.0, collection=base.IK)
+        builder.make_control(pole, "core_sphere", size=1.0, collection=base.IK)
+        builder.make_control(settings, "core_config", size=1.5, color=base.SECONDARY_COLOR, collection=base.PROPERTIES)
         for chain in finger_controls:
             for bone in chain:
-                builder.make_control(bone, "circle", size=1.2, color=base.SECONDARY_COLOR, collection=base.FINGERS)
+                builder.make_control(bone, "core_circle", size=1.2, color=base.SECONDARY_COLOR, collection=base.FINGERS)
         builder.make_mechanical(*ik, *blend)
 
         builder.bind(clavicle, clavicle_control)

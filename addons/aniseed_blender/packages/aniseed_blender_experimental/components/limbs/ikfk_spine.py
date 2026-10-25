@@ -188,13 +188,13 @@ class IKFKSpine(base.LimbComponent, GuideMixin):
             builder.blend(blend, fk, ik, settings)
 
         # -- Visuals and collections
-        builder.make_control(torso, "rounded_square", size=5.0)
-        builder.make_control(pelvis_fk, "half_circle", size=3.0, collection=base.FK)
+        builder.make_control(torso, "core_rounded_square", size=5.0)
+        builder.make_control(pelvis_fk, "core_half_circle", size=3.0, collection=base.FK)
         for bone in spine_fk:
-            builder.make_control(bone, "circle", size=2.5, collection=base.FK)
+            builder.make_control(bone, "core_circle", size=2.5, collection=base.FK)
         for bone in (hips_ik, mid_ik, chest_ik):
-            builder.make_control(bone, "cube", size=1.6, collection=base.IK)
-        builder.make_control(settings, "config", size=1.5, color=base.SECONDARY_COLOR, collection=base.PROPERTIES)
+            builder.make_control(bone, "core_cube", size=1.6, collection=base.IK)
+        builder.make_control(settings, "core_config", size=1.5, color=base.SECONDARY_COLOR, collection=base.PROPERTIES)
         builder.make_mechanical(pelvis_ik, pelvis_blend, *spine_ik, *spine_blend)
 
         builder.bind(pelvis, pelvis_blend)

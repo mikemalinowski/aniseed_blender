@@ -1,0 +1,7 @@
+{
+    "version": "0.1.0",
+    "description": "The Aniseed Animators Toolkit: tools for animating aniseed rigs, such as selecting, resetting and keying controls",
+    "hosts": ["blender"],
+    "requires": ["aniseed_blender_standard"],
+    "toolkit": "Animators"
+}

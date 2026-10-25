@@ -94,7 +94,7 @@ mode, so each execution block can leave the scene as it needs.
   "Spine FK 01" or "Index 02", so they appear once the rig has been built.
 * **IK/FK** limbs build an FK chain, an IK chain and a blend chain (which the
   deform bones follow). An `ik_fk` property on the limb's settings control
-  (the "config" shape) blends between them: 0 is FK, 1 is IK. The leg's foot
+  (the `core_config` shape) blends between them: 0 is FK, 1 is IK. The leg's foot
   roll properties (`heel_roll`, `ball_roll`, `toe_roll`, `bank`, `swivel`, in
   degrees) are on the IK foot control. Every driver is a simple expression, so
   rigs work without "Auto Run Python Scripts".
@@ -102,9 +102,12 @@ mode, so each execution block can leave the scene as it needs.
   `CTL_HandIk_01_R`, `MECH_SpineBlend_02_M`), unique across the file's objects
   and the rig's bones. `L` / `R` as the last part means Blender's own Paste
   Pose Flipped and X-Axis Mirror recognise the sides.
-* **Control shapes** come from `lib/shapes.json`, converted from the Maya
-  toolkit's shapes by `scripts/convert_maya_shapes.py`, so both hosts share
-  shape names. Each rig gets its widget meshes in a hidden
+* **Control shapes** are json files in `resources/shapes`, one per shape,
+  named by their file name (`core_circle`). They store NURBS curves the same
+  way as the Maya toolkit's shapes, so a shape file can be copied from one
+  host's shapes folder to the other's. `lib/widgets.py` reads them (sampling
+  curves above degree 1) and writes them (`save_shape` turns a curve or mesh
+  object into a shape file). Each rig gets its widget meshes in a hidden
   `<rig>_Widgets` collection.
 * **The skeleton in the recipe** is stored by the Blender host (in
   aniseed_blender_standard), which saves every Empty and armature beneath the
@@ -146,13 +149,13 @@ mode, so each execution block can leave the scene as it needs.
 ```
 base.py         LimbComponent (shared by the limbs) and the Builder they use
 lib/            plain bpy helpers: armatures, context, curves, mirroring,
-                rigging, widgets (and shapes.json)
+                rigging, widgets
 mixins/         CreateBonesMixin, GuideMixin, MirrorMixin
 components/     config, structure (control armature, linking, guides, modes,
                 finalise), visuals, limbs, basic (singular), augments
                 (space switch)
 recipes/        biped.json and the script which generates it
-scripts/        convert_maya_shapes.py
+resources/      shapes: the control shape library, one json file per shape
 tests/          run_build.py: builds the biped in background Blender and
                 checks it (bones, mirroring, rest pose, FK, IK, foot roll,
                 spine, space switches, visuals, save and load)

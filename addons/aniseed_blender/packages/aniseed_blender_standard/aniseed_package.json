@@ -1,6 +1,6 @@
 {
     "version": "0.1.0",
-    "description": "The Blender host for aniseed: the Aniseed menu, the app window (through qshake), undo and scene change handling",
+    "description": "The Blender host for aniseed: the Aniseed menu, the app window (through qshake), undo and scene change handling, and the framework the toolkits are built on",
     "hosts": ["blender"],
     "requires": []
 }

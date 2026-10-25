@@ -35,7 +35,7 @@ class Singular(base.LimbComponent, MirrorMixin):
 
         self.declare_option(
             name="Shape",
-            value="cube",
+            value="core_cube",
             description="The shape of the control",
             group="Visuals",
             pre_expose=True,

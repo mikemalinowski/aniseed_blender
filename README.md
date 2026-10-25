@@ -106,8 +106,8 @@ each one on or off. Changes take effect straight away and are remembered.
 
 ![Rig Image](documentation/aniseed_package_manager.png)
 
-Both bundled packages are on by default. `aniseed_blender_standard` provides the Blender
-host, so it is always on.
+All the bundled packages are on by default. `aniseed_blender_standard` provides the
+Blender host, so it is always on.
 
 A package can choose whether it starts on or off with `"enabled_by_default"` in its
 `aniseed_package.json` (see [Writing your own components](#writing-your-own-components)).
@@ -133,6 +133,27 @@ Start a new file (**File > New > General**), open the app, and use its **File** 
 open `addons/aniseed_blender/packages/aniseed_blender_experimental/recipes/biped.json`
 (or the same file inside Blender's add-ons folder, if you installed from a zip). The
 skeleton is recreated and the components loaded. Press **Build Rig**.
+
+## The toolkits
+
+**Aniseed > Riggers Toolkit** and **Aniseed > Animators Toolkit** open small windows of
+tools which act on the current selection:
+
+* **Riggers Toolkit**: Apply Shape, Save Shape, Copy Shape and Paste Shape (control
+  shapes from the shape library), and Set Control Colour.
+* **Animators Toolkit**: Select Controls, Reset Controls and Key Controls, for the rigs
+  anything selected belongs to.
+
+Pick a tool to see its options, and double click it (or press the **Run** button beneath
+its options, or right click > Run) to run it. Each run is one undo step. Right click a
+tool and choose **Add To Favourites** to also show it under **Favourites**, at the top
+of the toolkit (and **Remove From Favourites** to take it off again). A tool's strip turns green when it worked, and red or amber
+when it did not, with the reason in the Log tab. Options and favourites are remembered
+between sessions.
+
+A rig's control armature is rebuilt by every build, so snapshot shapes and colours
+changed with the Riggers Toolkit using the rig's **Control Visuals** component to keep
+them.
 
 ## Building without the user interface
 
@@ -198,6 +219,11 @@ Put the package in the add-on's `packages` folder, or add the folder containing 
 Component files go in its `components` folder, and any code shared between them goes in
 its `mixins` or `widgets` folders.
 
+A package can also add tools to a toolkit, in its `tools` folder. A tool subclasses
+`aniseed_blender_standard.toolkit.core.Tool`, names its `toolkit` ("Riggers" or
+"Animators") and `categories`, declares options (never inputs or outputs) and does its
+work in `run`. See `packages/aniseed_riggers_toolkit/tools` for examples.
+
 `packages/aniseed_blender_experimental` is a working example: start with
 `components/basic/singular.py` (one bone and one control) and the `base.py` it builds on.
 A few Blender specifics catch everyone:
@@ -227,8 +253,10 @@ aniseed_blender/
                 xstack/  crosswalk/  qtility/  factories/  signalling/  scribble/
                 qshake/                      <- runs Qt in Blender (with Qt.py and blackout)
             packages/
-                aniseed_blender_standard/    <- the Blender host
+                aniseed_blender_standard/    <- the Blender host, and the toolkit framework
                 aniseed_blender_experimental/ <- rigging components, and a biped recipe
+                aniseed_riggers_toolkit/     <- the Riggers Toolkit
+                aniseed_animators_toolkit/   <- the Animators Toolkit
 ```
 
 * **`__init__.py`**: the add-on. It puts the bundled `vendor` folder on the path, tells
@@ -246,6 +274,11 @@ aniseed_blender/
     * keeps aniseed's rigs valid when the user saves, opens files, undoes or redoes
     * stores the rig's Empties and armatures (with their bones) in saved recipes, and
       recreates them when a recipe is loaded
+    * provides the framework the toolkits are built on (`toolkit/`): each toolkit is an
+      xstack stack the user cannot change, holding its tools grouped by category
+* **`packages/aniseed_riggers_toolkit`** and **`packages/aniseed_animators_toolkit`**: the
+  two toolkits (see [The toolkits](#the-toolkits)). The Riggers Toolkit needs
+  `aniseed_blender_experimental`, for its shape library.
 * **`packages/aniseed_blender_experimental`**: rigging components which build a control
   armature driving the user's deform armature, with **Make Rig Editable** and **Build
   Rig** as in aniseed for Maya. See its

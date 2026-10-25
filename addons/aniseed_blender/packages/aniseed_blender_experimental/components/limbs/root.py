@@ -63,8 +63,8 @@ class Root(base.LimbComponent):
         # -- The root bone lies flat, pointing forward, so the shapes are turned
         # -- to lie on the ground
         flat = (math.radians(90), 0, 0)
-        builder.make_control(root, "circle", size=2.4, rotation=flat)
-        builder.make_control(offset, "circle", size=2.4, color=base.SECONDARY_COLOR, rotation=flat)
+        builder.make_control(root, "core_circle", size=2.4, rotation=flat)
+        builder.make_control(offset, "core_circle", size=2.4, color=base.SECONDARY_COLOR, rotation=flat)
 
         builder.bind(root_bone, offset)
 

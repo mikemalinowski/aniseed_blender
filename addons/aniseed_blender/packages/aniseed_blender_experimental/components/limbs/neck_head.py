@@ -81,8 +81,8 @@ class NeckAndHead(base.LimbComponent):
             chain = builder.copy_chain(neck + [head], "control", "", parent=self.control_parent())
 
         for bone in chain[:-1]:
-            builder.make_control(bone, "circle", size=2.5, collection=base.FK)
-        builder.make_control(chain[-1], "circle", size=1.5, collection=base.FK, translation=(0, builder.rest(head)["length"] * 0.5, 0))
+            builder.make_control(bone, "core_circle", size=2.5, collection=base.FK)
+        builder.make_control(chain[-1], "core_circle", size=1.5, collection=base.FK, translation=(0, builder.rest(head)["length"] * 0.5, 0))
 
         for deform_bone, control_bone in zip(neck + [head], chain):
             builder.bind(deform_bone, control_bone)
